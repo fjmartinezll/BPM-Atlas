@@ -26,7 +26,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuth } from "@/lib/auth-context";
 import { useClient } from "@/lib/client-context";
 import { useSelectedEntity } from "@/lib/selected-entity";
-import { validateValueForType, exampleForType } from "@/lib/field-types";
+import { useTranslation } from "react-i18next";
+import { validateValueForType, exampleForType, getVarTypeLabel } from "@/lib/field-types";
 import { InstanceDiagramPanel } from "@/components/instance-diagram-panel";
 import {
   Play, Pause, Square as StopIcon, FastForward, RefreshCw, Rocket, PowerOff, Timer, CheckCircle2,
@@ -56,8 +57,20 @@ const STATUS_BADGE: Record<string, string> = {
   error: "bg-rose-500/15 text-rose-700",
 };
 
+const STATUS_LABEL: Record<string, string> = {
+  active: "Activo",
+  inactive: "Inactivo",
+  archived: "Archivado",
+  running: "En ejecución",
+  waiting: "Esperando",
+  paused: "Pausado",
+  completed: "Completado",
+  aborted: "Abortado",
+  error: "Error",
+};
+
 function StatusBadge({ value }: { value: string }) {
-  return <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_BADGE[value] ?? "bg-muted"}`}>{value}</span>;
+  return <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_BADGE[value] ?? "bg-muted"}`}>{STATUS_LABEL[value] ?? value}</span>;
 }
 
 function fmtDate(s?: string | null) {
@@ -422,7 +435,7 @@ function InstancesTab({ canEdit }: { canEdit: boolean }) {
           <SelectTrigger className="h-8 w-40"><SelectValue /></SelectTrigger>
           <SelectContent>
             {["all", "running", "waiting", "paused", "completed", "aborted", "error"].map((s) => (
-              <SelectItem key={s} value={s}>{s}</SelectItem>
+              <SelectItem key={s} value={s}>{s === "all" ? "Todos" : STATUS_LABEL[s] ?? s}</SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -783,6 +796,7 @@ function StartInstanceForm({
   submitting: boolean;
 }) {
   const qc = useQueryClient();
+  const { t } = useTranslation();
   const getInputsFn = useServerFn(getDefinitionInputs);
   const getDraftFn = useServerFn(getStartDraft);
   const saveDraftFn = useServerFn(saveStartDraft);
@@ -978,7 +992,7 @@ function StartInstanceForm({
             <Label className="text-xs">
               {v.label || v.name}{" "}
               <span className="text-muted-foreground">
-                ({v.var_type}{v.var_type === "entity" && v.entity_id ? `: ${entityById.get(v.entity_id) ?? "entidad"}` : ""})
+                ({t("var_type." + v.var_type, getVarTypeLabel(v.var_type))}{v.var_type === "entity" && v.entity_id ? `: ${entityById.get(v.entity_id) ?? t("common.entity", "entidad")}` : ""})
               </span>
               {v.is_input && <span className="ml-1 text-rose-500">*</span>}
             </Label>

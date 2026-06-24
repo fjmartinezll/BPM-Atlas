@@ -25,6 +25,24 @@ const TABLES = [
 ] as const;
 type TableName = typeof TABLES[number];
 
+const TABLE_DISPLAY: Record<string, string> = {
+  macroprocesses: "Macroprocesos",
+  processes: "Procesos",
+  subprocesses: "Subprocesos",
+  executable_elements: "Elementos ejecutables",
+  subprocess_elements: "Composición subproceso-elementos",
+  executable_element_integrations: "Integraciones externas",
+  entities: "Entidades",
+  entity_process_links: "Vínculos entidad-proceso",
+  process_diagrams: "Diagramas de proceso",
+  process_indicators: "Indicadores (KPIs)",
+  process_risks: "Riesgos",
+  process_documents: "Documentos",
+  profiles: "Perfiles de usuario",
+  user_roles: "Roles de usuario",
+  change_log: "Bitácora de cambios",
+};
+
 // Columns that are managed by the DB or shouldn't be edited in the form.
 const SYSTEM_COLS = new Set(["created_at", "updated_at"]);
 
@@ -237,7 +255,7 @@ function Page() {
       <div className="flex flex-wrap gap-2">
         {TABLES.map((t) => (
           <Button key={t} size="sm" variant={t === table ? "default" : "outline"} onClick={() => setTable(t)}>
-            {t}
+            {TABLE_DISPLAY[t] ?? t}
           </Button>
         ))}
       </div>
@@ -301,7 +319,7 @@ function Page() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{editing ? "Editar registro" : "Nuevo registro"} · {table}</DialogTitle>
+            <DialogTitle>{editing ? "Editar registro" : "Nuevo registro"} · {TABLE_DISPLAY[table] ?? table}</DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
             {columns.map((c) => {
@@ -548,7 +566,7 @@ function SchemaSqlPanel() {
                 value={builderTable}
                 onChange={(e) => setBuilderTable(e.target.value as TableName)}
               >
-                {TABLES.map((t) => <option key={t} value={t}>{t}</option>)}
+                {TABLES.map((t) => <option key={t} value={t}>{TABLE_DISPLAY[t] ?? t}</option>)}
               </select>
             </div>
             <div className="space-y-1">

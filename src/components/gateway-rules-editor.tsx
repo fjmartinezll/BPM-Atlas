@@ -6,10 +6,22 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Plus, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { useTranslation } from "react-i18next";
+import { getVarTypeLabel } from "@/lib/field-types";
 import { migrateGatewayRule, type GatewayRule, type RuleOperand, type ProcessVariable, type VarType, type InputMeta, type VarsScope } from "@/lib/bpm";
 
 const GATEWAY_OPS = ["=", "≠", "<", "≤", ">", "≥", "contiene", "vacío"] as const;
-const ENTITY_ATTRS = ["name", "description", "mission", "vision", "strategy", "status", "stakeholder_inputs", "stakeholder_outputs"];
+const ENTITY_ATTRS = ["name", "description", "mission", "vision", "strategy", "status", "stakeholder_inputs", "stakeholder_outputs"] as const;
+const ENTITY_ATTR_LABEL: Record<string, string> = {
+  name: "Nombre",
+  description: "Descripción",
+  mission: "Misión",
+  vision: "Visión",
+  strategy: "Estrategia",
+  status: "Estado",
+  stakeholder_inputs: "Entradas (stakeholders)",
+  stakeholder_outputs: "Salidas (stakeholders)",
+};
 
 const scopeReady = (s: VarsScope | null) => !!(s && s.clientId);
 const scopeKey = (s: VarsScope | null) => s ? [s.clientId, s.environment, s.entityId] : [null, null, null];
@@ -75,7 +87,7 @@ function OperandPicker({
           </select>
           <select className="h-7 w-24 rounded border bg-background px-1 text-sm"
             value={(v as any).path ?? ENTITY_ATTRS[0]} onChange={(e) => onChange({ kind: "attr", name: (v as any).name, path: e.target.value })}>
-            {ENTITY_ATTRS.map((a) => <option key={a} value={a}>{a}</option>)}
+            {ENTITY_ATTRS.map((a) => <option key={a} value={a}>{ENTITY_ATTR_LABEL[a]}</option>)}
           </select>
           {selectedVar && <span className="text-xs text-muted-foreground">{selectedVar.label}</span>}
         </>
@@ -227,6 +239,7 @@ function InputMetaEditor({
   meta: Record<string, InputMeta>;
   setMeta: (m: Record<string, InputMeta>) => void;
 }) {
+  const { t } = useTranslation();
   const byName = new Map(vars.map((v) => [v.name, v] as const));
   const update = (name: string, patch: Partial<InputMeta>) => {
     const next = { ...meta, [name]: { ...(meta[name] ?? {}), ...patch } };
@@ -253,7 +266,7 @@ function InputMetaEditor({
         return (
           <div key={name} className="grid grid-cols-12 items-center gap-1 rounded px-1 py-0.5 text-xs">
             <span className="col-span-4 truncate font-medium" title={name}>
-              {v?.label || name} <span className="text-muted-foreground">:{type}</span>
+              {v?.label || name} <span className="text-muted-foreground">:{t("var_type." + type, getVarTypeLabel(type))}</span>
             </span>
             <span className="col-span-2 flex justify-center">
               <input type="checkbox" checked={!!m.required}
@@ -298,6 +311,7 @@ function VarColumn({
   vars: ProcessVariable[];
   scope: VarsScope | null;
 }) {
+  const { t } = useTranslation();
   const chosen = vars.filter((v) => selected.includes(v.name));
 
   return (
@@ -310,7 +324,7 @@ function VarColumn({
         {chosen.map((v) => (
           <span key={v.name} className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs ${colorClass}`}>
             <span className="font-medium">{v.label || v.name}</span>
-            <span className="opacity-60">:{v.var_type}</span>
+            <span className="opacity-60">:{t("var_type." + v.var_type, getVarTypeLabel(v.var_type))}</span>
             <button
               type="button"
               className="ml-0.5 rounded-full p-0.5 hover:bg-black/10 dark:hover:bg-white/10"
@@ -350,6 +364,7 @@ function AddVarPopover({
   onCreated: (name: string) => void;
   scope: VarsScope | null;
 }) {
+  const { t } = useTranslation();
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<"pick" | "create">("pick");
@@ -440,7 +455,7 @@ function AddVarPopover({
                     <span className="truncate font-medium">{v.label || v.name}</span>
                     <span className="flex items-center gap-1 text-xs uppercase text-muted-foreground">
                       {isSelected && <span className="rounded bg-muted px-1 py-0.5 text-[9px] normal-case tracking-normal">añadida</span>}
-                      {v.var_type}
+                      {t("var_type." + v.var_type, getVarTypeLabel(v.var_type))}
                     </span>
                   </button>
                 );

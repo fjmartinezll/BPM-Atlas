@@ -19,6 +19,38 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { exportAllData, importAllData, type ImportResult, type BackupPayload } from "@/lib/backup.functions";
 
+const TABLE_LABEL: Record<string, string> = {
+  clients: "Clientes",
+  user_roles: "Roles de usuario",
+  user_clients: "Usuarios por cliente",
+  tenant_invitations: "Invitaciones",
+  tenant_join_requests: "Solicitudes de unión",
+  entities: "Entidades",
+  entity_process_links: "Vínculos entidad-proceso",
+  macroprocesses: "Macroprocesos",
+  processes: "Procesos",
+  subprocesses: "Subprocesos",
+  executable_elements: "Elementos ejecutables",
+  subprocess_elements: "Composición subproceso-elementos",
+  executable_element_integrations: "Integraciones externas",
+  process_diagrams: "Diagramas de proceso",
+  process_indicators: "Indicadores (KPIs)",
+  process_risks: "Riesgos",
+  process_documents: "Documentos",
+  process_definitions: "Definiciones versionadas",
+  process_variables: "Variables de proceso",
+  tasks: "Tareas (fichas SIPOC)",
+  change_log: "Bitácora de cambios",
+  node_categories: "Categorías de nodo",
+  node_kinds: "Tipos básicos de nodo",
+  node_types: "Variantes de nodo",
+  node_subtypes: "Subtipos de nodo",
+  entity_positions: "Cargos organizativos",
+  entity_field_catalog: "Catálogo de campos",
+  entity_table_columns: "Columnas de tablas",
+  entity_diagram_tables: "Tablas de diagrama",
+};
+
 export function BackupPanel() {
   const exportFn = useServerFn(exportAllData);
   const importFn = useServerFn(importAllData);
@@ -143,7 +175,7 @@ export function BackupPanel() {
               <TableBody>
                 {results.map((r) => (
                   <TableRow key={r.table}>
-                    <TableCell className="font-mono text-xs">{r.table}</TableCell>
+                    <TableCell className="text-xs"><span className="font-medium">{TABLE_LABEL[r.table] ?? r.table}</span> <span className="font-mono text-muted-foreground">({r.table})</span></TableCell>
                     <TableCell className="text-right">{r.inserted}</TableCell>
                     <TableCell className="text-xs text-destructive">
                       {r.errors.length === 0 ? "—" : r.errors.join("; ")}

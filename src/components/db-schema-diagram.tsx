@@ -4,27 +4,27 @@ import { useMemo, useRef, useState, type PointerEvent as ReactPointerEvent, type
 type Box = { x: number; y: number; w: number; h: number; label: string; group: "identity" | "hierarchy" | "aux" };
 
 const BOX_W = 170;
-const BOX_H = 44;
+const BOX_H = 54;
 
 const INITIAL_TABLES: Record<string, Box> = {
-  "auth.users":         { x:  40, y:  40, w: BOX_W, h: BOX_H, label: "auth.users",         group: "identity" },
-  profiles:             { x:  40, y: 120, w: BOX_W, h: BOX_H, label: "profiles",            group: "identity" },
-  user_roles:           { x:  40, y: 200, w: BOX_W, h: BOX_H, label: "user_roles",          group: "identity" },
+  "auth.users":         { x:  40, y:  40, w: BOX_W, h: BOX_H, label: "Usuarios (auth)",         group: "identity" },
+  profiles:             { x:  40, y: 120, w: BOX_W, h: BOX_H, label: "Perfiles de usuario",            group: "identity" },
+  user_roles:           { x:  40, y: 200, w: BOX_W, h: BOX_H, label: "Roles de usuario",          group: "identity" },
 
-  macroprocesses:       { x: 320, y:  40, w: BOX_W, h: BOX_H, label: "macroprocesses",      group: "hierarchy" },
-  processes:            { x: 320, y: 130, w: BOX_W, h: BOX_H, label: "processes",           group: "hierarchy" },
-  executable_elements:  { x: 320, y: 220, w: BOX_W, h: BOX_H, label: "executable_elements", group: "hierarchy" },
-  subprocesses:         { x: 320, y: 320, w: BOX_W, h: BOX_H, label: "subprocesses",        group: "hierarchy" },
-  subprocess_elements:  { x: 320, y: 410, w: BOX_W, h: BOX_H, label: "subprocess_elements", group: "hierarchy" },
-  executable_element_integrations: { x: 320, y: 510, w: BOX_W, h: BOX_H, label: "executable_element_integrations", group: "hierarchy" },
+  macroprocesses:       { x: 320, y:  40, w: BOX_W, h: BOX_H, label: "Macroprocesos",      group: "hierarchy" },
+  processes:            { x: 320, y: 130, w: BOX_W, h: BOX_H, label: "Procesos",           group: "hierarchy" },
+  executable_elements:  { x: 320, y: 220, w: BOX_W, h: BOX_H, label: "Elementos ejecutables", group: "hierarchy" },
+  subprocesses:         { x: 320, y: 320, w: BOX_W, h: BOX_H, label: "Subprocesos",        group: "hierarchy" },
+  subprocess_elements:  { x: 320, y: 410, w: BOX_W, h: BOX_H, label: "Composición subproceso-elementos", group: "hierarchy" },
+  executable_element_integrations: { x: 320, y: 510, w: BOX_W, h: BOX_H, label: "Integraciones externas", group: "hierarchy" },
 
-  entities:             { x: 600, y:  40, w: BOX_W, h: BOX_H, label: "entities",            group: "aux" },
-  entity_process_links: { x: 600, y: 120, w: BOX_W, h: BOX_H, label: "entity_process_links",group: "aux" },
-  process_diagrams:     { x: 600, y: 200, w: BOX_W, h: BOX_H, label: "process_diagrams",    group: "aux" },
-  process_indicators:   { x: 600, y: 280, w: BOX_W, h: BOX_H, label: "process_indicators",  group: "aux" },
-  process_risks:        { x: 600, y: 360, w: BOX_W, h: BOX_H, label: "process_risks",       group: "aux" },
-  process_documents:    { x: 600, y: 440, w: BOX_W, h: BOX_H, label: "process_documents",   group: "aux" },
-  change_log:           { x: 600, y: 520, w: BOX_W, h: BOX_H, label: "change_log",          group: "aux" },
+  entities:             { x: 600, y:  40, w: BOX_W, h: BOX_H, label: "Entidades",            group: "aux" },
+  entity_process_links: { x: 600, y: 120, w: BOX_W, h: BOX_H, label: "Vínculos entidad-proceso",group: "aux" },
+  process_diagrams:     { x: 600, y: 200, w: BOX_W, h: BOX_H, label: "Diagramas de proceso",    group: "aux" },
+  process_indicators:   { x: 600, y: 280, w: BOX_W, h: BOX_H, label: "Indicadores (KPIs)",  group: "aux" },
+  process_risks:        { x: 600, y: 360, w: BOX_W, h: BOX_H, label: "Riesgos",       group: "aux" },
+  process_documents:    { x: 600, y: 440, w: BOX_W, h: BOX_H, label: "Documentos",   group: "aux" },
+  change_log:           { x: 600, y: 520, w: BOX_W, h: BOX_H, label: "Bitácora de cambios",          group: "aux" },
 };
 
 type Rel = { from: string; to: string; column: string; kind: "n-1" | "1-1"; label?: string };
@@ -234,7 +234,7 @@ export function DbSchemaDiagram() {
             onChange={(e) => setShowProfiles(e.target.checked)}
             className="accent-primary h-3.5 w-3.5"
           />
-          Mostrar tabla <span className="font-mono">profiles</span>
+          Mostrar <span className="font-mono">Perfiles de usuario</span>
         </label>
         <span className="ml-auto flex items-center gap-2">
           <span className="font-mono">{Math.round(view.scale * 100)}%</span>
@@ -325,11 +325,17 @@ export function DbSchemaDiagram() {
                         fillOpacity={GROUP_OPACITY[b.group]}
                         stroke={hover === name ? "var(--primary)" : "var(--border)"}
                         strokeWidth={hover === name ? 2 : 1} />
-                  <text x={b.x + b.w / 2} y={b.y + b.h / 2 + 4}
+                  <text x={b.x + b.w / 2} y={b.y + b.h / 2 - 5}
                         textAnchor="middle" fontSize={12} fontFamily="ui-sans-serif, system-ui"
                         fill="var(--foreground)" fontWeight={600}
                         style={{ pointerEvents: "none" }}>
                     {b.label}
+                  </text>
+                  <text x={b.x + b.w / 2} y={b.y + b.h / 2 + 12}
+                        textAnchor="middle" fontSize={9} fontFamily="monospace"
+                        fill="var(--muted-foreground)"
+                        style={{ pointerEvents: "none" }}>
+                    {name}
                   </text>
                 </g>
               );

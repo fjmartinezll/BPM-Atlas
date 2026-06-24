@@ -38,7 +38,17 @@ const resources = {
       sipoc: "SIPOC: Proveedores–Entradas–Proceso–Salidas–Clientes. Herramienta de modelado de alto nivel.",
       pdca: "PDCA (Plan-Do-Check-Act): ciclo de mejora continua aplicado al BPM.",
       executable_element: "Elemento ejecutable: unidad mínima asociable a una app o a un workflow n8n. Solo puede crearse bajo una tarea no humana.",
-    }
+    },
+    var_type: {
+      text: "Texto", varchar: "Varchar",
+      integer: "Entero (int4)", bigint: "Entero grande (int8)",
+      numeric: "Numérico", real: "Real (float4)", "double precision": "Doble precisión (float8)",
+      boolean: "Booleano",
+      date: "Fecha", time: "Hora", timestamp: "Fecha-hora", timestamptz: "Fecha-hora con zona",
+      uuid: "UUID",
+      json: "JSON", jsonb: "JSONB",
+      entity: "Entidad",
+    },
   }},
   en: { translation: {
     app: { name: "BPM Atlas", tagline: "Hierarchical business process management" },
@@ -73,7 +83,17 @@ const resources = {
       owner: "Process Owner: accountable for defining, measuring and improving the process end-to-end.",
       sipoc: "SIPOC: Suppliers–Inputs–Process–Outputs–Customers. High-level modeling tool.",
       pdca: "PDCA (Plan-Do-Check-Act): continuous improvement cycle applied to BPM.",
-    }
+    },
+    var_type: {
+      text: "Text", varchar: "Varchar",
+      integer: "Integer (int4)", bigint: "Big integer (int8)",
+      numeric: "Numeric", real: "Real (float4)", "double precision": "Double precision (float8)",
+      boolean: "Boolean",
+      date: "Date", time: "Time", timestamp: "Timestamp", timestamptz: "Timestamp with zone",
+      uuid: "UUID",
+      json: "JSON", jsonb: "JSONB",
+      entity: "Entity",
+    },
   }},
   fr: { translation: { app: { name: "BPM Atlas", tagline: "Gestion hiérarchique des processus" }, nav: { dashboard: "Tableau de bord", encyclopedia: "Encyclopédie BPM", admin: "Administration", logout: "Déconnexion", login: "Connexion", signup: "Inscription", entities: "Entités" }, levels: { macroprocess: "Macroprocessus", macroprocesses: "Macroprocessus", process_type: "Type de processus", process_types: "Types de processus", process: "Processus", processes: "Processus", subprocess: "Sous-processus", subprocesses: "Sous-processus", task_type: "Type de tâche", task_types: "Types de tâches", task: "Tâche", tasks: "Tâches" }, fields: { code: "Code", name: "Nom", mission: "Mission", owner: "Responsable", inputs: "Entrées", outputs: "Sorties", status: "Statut", parent: "Parent", actions: "Actions" }, status: { borrador: "Brouillon", activo: "Actif", revision: "En revue", obsoleto: "Obsolète" }, roles: { administrador: "Administrateur", dueno_proceso: "Responsable de processus", participante: "Participant", auditor: "Auditeur" }, actions: { create: "Créer", edit: "Éditer", delete: "Supprimer", save: "Enregistrer", cancel: "Annuler", search: "Rechercher", view: "Voir" }, auth: { email: "E-mail", password: "Mot de passe", fullName: "Nom complet", signIn: "Se connecter", signUp: "Créer un compte", noAccount: "Pas de compte ?", hasAccount: "Déjà un compte ?", welcome: "Bienvenue dans BPM Atlas", subtitle: "Visualisez et gouvernez la hiérarchie des processus.", invalidEmail: "Cette adresse e-mail ne semble pas exister. Vérifiez-la.", accountCreated: "Compte créé" }, dashboard: { title: "Tableau global", subtitle: "Vue hiérarchique descendante", empty: "Aucun macroprocessus. Créez le premier pour commencer.", summary: "Résumé", total: "Total" }, encyclopedia: { title: "Encyclopédie BPM", subtitle: "Définitions techniques de chaque élément BPM." }, common: { loading: "Chargement…", language: "Langue", noResults: "Aucun résultat" }, enc: { macroprocess: "Ensemble de processus interreliés couvrant une grande capacité organisationnelle.", process_type: "Regroupement fonctionnel de processus.", process: "Séquence d'activités transformant des entrées en sorties à valeur ajoutée.", subprocess: "Subdivision d'un processus.", task_type: "Catégorie de tâches.", task: "Plus petite unité de travail exécutable.", owner: "Responsable de processus, garant de bout en bout.", sipoc: "SIPOC : Fournisseurs–Entrées–Processus–Sorties–Clients.", pdca: "PDCA : cycle d'amélioration continue." } , ai: { goToHierarchy: "Aller à la hiérarchie des processus d'une entité" }}},
   de: { translation: { app: { name: "BPM Atlas", tagline: "Hierarchisches Geschäftsprozessmanagement" }, nav: { dashboard: "Dashboard", encyclopedia: "BPM-Enzyklopädie", admin: "Verwaltung", logout: "Abmelden", login: "Anmelden", signup: "Registrieren", entities: "Entitäten" }, levels: { macroprocess: "Makroprozess", macroprocesses: "Makroprozesse", process_type: "Prozesstyp", process_types: "Prozesstypen", process: "Prozess", processes: "Prozesse", subprocess: "Teilprozess", subprocesses: "Teilprozesse", task_type: "Aufgabentyp", task_types: "Aufgabentypen", task: "Aufgabe", tasks: "Aufgaben" }, fields: { code: "Code", name: "Name", mission: "Mission", owner: "Prozessverantwortlicher", inputs: "Eingaben", outputs: "Ausgaben", status: "Status", parent: "Übergeordnet", actions: "Aktionen" }, status: { borrador: "Entwurf", activo: "Aktiv", revision: "In Prüfung", obsoleto: "Veraltet" }, roles: { administrador: "Administrator", dueno_proceso: "Prozessverantwortlicher", participante: "Teilnehmer", auditor: "Auditor" }, actions: { create: "Erstellen", edit: "Bearbeiten", delete: "Löschen", save: "Speichern", cancel: "Abbrechen", search: "Suchen", view: "Ansehen" }, auth: { email: "E-Mail", password: "Passwort", fullName: "Vollständiger Name", signIn: "Anmelden", signUp: "Konto erstellen", noAccount: "Kein Konto?", hasAccount: "Schon ein Konto?", welcome: "Willkommen bei BPM Atlas", subtitle: "Prozesshierarchie Ihrer Organisation steuern.", invalidEmail: "Diese E-Mail-Adresse scheint nicht zu existieren. Bitte prüfen.", accountCreated: "Konto erstellt" }, dashboard: { title: "Globales Dashboard", subtitle: "Hierarchische Top-Down-Ansicht", empty: "Noch keine Makroprozesse. Erstellen Sie den ersten.", summary: "Übersicht", total: "Gesamt" }, encyclopedia: { title: "BPM-Enzyklopädie", subtitle: "Technische Definitionen aller BPM-Elemente." }, common: { loading: "Lädt…", language: "Sprache", noResults: "Keine Ergebnisse" }, enc: { macroprocess: "Zusammenhängende Prozesse, die eine wesentliche Fähigkeit abdecken.", process_type: "Funktionale Gruppierung von Prozessen.", process: "Geordnete Aktivitätenfolge mit Wertschöpfung.", subprocess: "Unterteilung eines Prozesses.", task_type: "Kategorie von Aufgaben.", task: "Kleinste ausführbare Arbeitseinheit.", owner: "Prozessverantwortlicher, end-to-end.", sipoc: "SIPOC: Lieferanten–Eingaben–Prozess–Ausgaben–Kunden.", pdca: "PDCA: kontinuierlicher Verbesserungszyklus." } , ai: { goToHierarchy: "Zur Prozesshierarchie einer Entität" }}},

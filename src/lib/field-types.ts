@@ -106,6 +106,10 @@ export function validateValueForType(raw: string, type: FieldType | "entity"): s
   }
 }
 
+export function getVarTypeLabel(type: string): string {
+  return VAR_TYPES.find((t) => t.value === type)?.label ?? type;
+}
+
 export function exampleForType(type: FieldType | "entity"): string {
   switch (type) {
     case "text":

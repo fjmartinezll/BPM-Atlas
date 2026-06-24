@@ -36,6 +36,7 @@ const TABLES: TableDef[] = [
   {
     id: "entities",
     title: "entities",
+    displayName: "Entidades",
     subtitle: "Entidades organizativas",
     description: "Tabla central. Cada fila representa una entidad (empresa, división, área, departamento) sobre la que se construye un modelo BPM independiente.",
     details: "Las entidades son el contenedor principal: todo modelo (macroproceso, proceso, subproceso, elemento ejecutable, diagrama) se asocia directa o indirectamente a una entidad. Al cambiar la entidad seleccionada en la cabecera, la aplicación filtra todos los modelos por su entity_id.",
@@ -55,6 +56,7 @@ const TABLES: TableDef[] = [
   {
     id: "entity_process_links",
     title: "entity_process_links",
+    displayName: "Vínculos Entidad-Proceso",
     subtitle: "Vínculo Entidad ↔ Proceso",
     description: "Tabla puente que vincula procesos con entidades y registra el dueño responsable de ese proceso dentro de la entidad.",
     details: "Permite que un mismo proceso participe en varias entidades con responsables distintos. Es la fuente de verdad para filtrar procesos por entidad cuando el proceso no nace asociado directamente vía macroproceso.",
@@ -72,6 +74,7 @@ const TABLES: TableDef[] = [
   {
     id: "macroprocesses",
     title: "macroprocesses",
+    displayName: "Macroprocesos",
     subtitle: "Modelo: Macroproceso",
     description: "Nivel superior del mapa de procesos. Agrupa procesos relacionados que comparten un objetivo estratégico dentro de una entidad.",
     details: "Tipo de modelo: MACROPROCESO. Es el único modelo con FK directa a entities (entity_id). Los procesos cuelgan del macroproceso vía parent_id, heredando así la pertenencia a la entidad.",
@@ -89,6 +92,7 @@ const TABLES: TableDef[] = [
   {
     id: "processes",
     title: "processes",
+    displayName: "Procesos",
     subtitle: "Modelo: Proceso",
     description: "Procesos de negocio que materializan los objetivos del macroproceso. Hereda la entidad de su macroproceso padre.",
     details: "Tipo de modelo: PROCESO. Puede tener un process_type_id (catálogo de tipos de proceso: operativo, estratégico, soporte, etc.). Se asocia a entidades por dos vías: (1) a través del macroproceso padre y (2) directamente con entity_process_links.",
@@ -106,6 +110,7 @@ const TABLES: TableDef[] = [
   {
     id: "subprocesses",
     title: "subprocesses",
+    displayName: "Subprocesos",
     subtitle: "Modelo: Subproceso",
     description: "Descomposición de un proceso en pasos de negocio más pequeños y reutilizables.",
     details: "Tipo de modelo: SUBPROCESO. Hereda la entidad de su proceso padre. Está formado por elementos ejecutables enlazados mediante subprocess_elements.",
@@ -122,6 +127,7 @@ const TABLES: TableDef[] = [
   {
     id: "executable_elements",
     title: "executable_elements",
+    displayName: "Elementos Ejecutables",
     subtitle: "Modelo: Elemento ejecutable",
     description: "Tareas, decisiones, eventos y demás nodos atómicos que componen un proceso ejecutable.",
     details: "Tipo de modelo: ELEMENTO EJECUTABLE. Tiene una columna 'kind' (taxonomía: tarea, decisión, evento, etc.) que define su comportamiento. Hereda la entidad del proceso padre.",
@@ -138,6 +144,7 @@ const TABLES: TableDef[] = [
   {
     id: "process_diagrams",
     title: "process_diagrams",
+    displayName: "Diagramas de Proceso",
     subtitle: "Modelo: Diagrama de proceso",
     description: "Representación gráfica (BPMN, mapa, flujo) asociada a un proceso.",
     details: "Tipo de modelo: DIAGRAMA. La columna diagram_type indica la notación (BPMN, mapa de procesos, diagrama de flujo, etc.). Cada diagrama pertenece a un proceso y, por tanto, hereda su entidad.",
@@ -154,6 +161,7 @@ const TABLES: TableDef[] = [
   {
     id: "subprocess_elements",
     title: "subprocess_elements",
+    displayName: "Composición Subproceso-Elementos",
     subtitle: "Composición Subproceso ↔ Elementos",
     description: "Tabla puente que enlaza un subproceso con los elementos ejecutables que lo conforman.",
     details: "Permite reutilizar elementos ejecutables en varios subprocesos.",
@@ -169,6 +177,7 @@ const TABLES: TableDef[] = [
   {
     id: "process_type",
     title: "process_type (catálogo)",
+    displayName: "Tipos de Proceso",
     subtitle: "Tipos de proceso",
     description: "Catálogo de tipos posibles para los procesos (estratégico, operativo, soporte, gobierno, etc.).",
     details: "Define la clasificación funcional del proceso dentro del mapa de la entidad.",
@@ -185,6 +194,7 @@ const TABLES: TableDef[] = [
   {
     id: "element_kind",
     title: "element_kind (catálogo)",
+    displayName: "Tipos de Elemento Ejecutable",
     subtitle: "Tipos de elemento ejecutable",
     description: "Catálogo de tipos de nodo atómico: tarea, decisión, evento, llamada a subproceso, etc.",
     details: "Determina cómo se ejecuta el nodo dentro del motor de procesos.",
@@ -201,6 +211,7 @@ const TABLES: TableDef[] = [
   {
     id: "diagram_type",
     title: "diagram_type (catálogo)",
+    displayName: "Tipos de Diagrama",
     subtitle: "Tipos de diagrama",
     description: "Catálogo de notaciones gráficas: BPMN, mapa de procesos, diagrama de flujo, cadena de valor.",
     details: "Define cómo se renderiza visualmente el diagrama del proceso.",
@@ -220,6 +231,7 @@ const TABLES: TableDef[] = [
   {
     id: "process_definitions",
     title: "process_definitions",
+    displayName: "Definiciones Versionadas",
     subtitle: "Definición versionada del proceso",
     description: "Snapshot publicado y versionado de un proceso (nodos y aristas) que el motor puede instanciar.",
     details: "Cada versión de un proceso publicada para ejecución se guarda aquí con su grafo (nodes/edges). Las instancias en ejecución apuntan a una de estas definiciones.",
@@ -237,6 +249,7 @@ const TABLES: TableDef[] = [
   {
     id: "process_instances",
     title: "process_instances",
+    displayName: "Instancias de Ejecución",
     subtitle: "Ejecuciones del proceso",
     description: "Instancias en ejecución de una definición concreta. Cada inicio del proceso crea una fila.",
     details: "Mantiene el estado (status, started_at, ended_at) y las variables del proceso en ejecución. Es el ancla de tokens, tareas y eventos.",
@@ -255,6 +268,7 @@ const TABLES: TableDef[] = [
   {
     id: "process_tokens",
     title: "process_tokens",
+    displayName: "Tokens BPMN",
     subtitle: "Tokens del motor BPMN",
     description: "Token que representa la posición actual de ejecución dentro del grafo de una instancia.",
     details: "El motor BPMN mueve tokens por los nodos del diagrama; cada token tiene un nodo actual y un estado (esperando, activo, dormido…).",
@@ -272,6 +286,7 @@ const TABLES: TableDef[] = [
   {
     id: "process_tasks",
     title: "process_tasks",
+    displayName: "Tareas del Motor",
     subtitle: "Tareas generadas por el motor",
     description: "Tareas (humanas o automáticas) creadas durante la ejecución de una instancia.",
     details: "Cada nodo de tipo tarea/decisión/integración crea filas aquí: lleva asignado, estado, payload y resultado.",
@@ -291,6 +306,7 @@ const TABLES: TableDef[] = [
   {
     id: "process_events_log",
     title: "process_events_log",
+    displayName: "Bitácora del Motor",
     subtitle: "Bitácora del motor",
     description: "Registro inmutable de eventos del motor: arranques, movimientos de token, errores, fin de instancia.",
     details: "Trazabilidad completa de la ejecución de cada instancia. Útil para auditoría y depuración.",
@@ -308,6 +324,7 @@ const TABLES: TableDef[] = [
   {
     id: "executable_element_integrations",
     title: "executable_element_integrations",
+    displayName: "Integraciones Externas",
     subtitle: "Integraciones del elemento ejecutable",
     description: "Vincula un elemento ejecutable (tarea automática) con su integración externa (n8n, webhook, app).",
     details: "Permite que el motor delegue la ejecución del nodo a un proveedor externo (provider) usando una referencia (external_ref / url).",
@@ -325,6 +342,7 @@ const TABLES: TableDef[] = [
   {
     id: "process_indicators",
     title: "process_indicators",
+    displayName: "Indicadores (KPIs)",
     subtitle: "Indicadores (KPIs)",
     description: "Indicadores de medición asociados de forma polimórfica a un nivel BPM (macroproceso/proceso/subproceso/elemento).",
     details: "target_level + target_id identifican el objetivo medido. No usa FK directa por ser polimórfico.",
@@ -343,6 +361,7 @@ const TABLES: TableDef[] = [
   {
     id: "process_risks",
     title: "process_risks",
+    displayName: "Riesgos",
     subtitle: "Riesgos del proceso",
     description: "Riesgos asociados de forma polimórfica a un nivel BPM, con probabilidad, impacto y control.",
     details: "target_level + target_id apuntan al modelo afectado (proceso, subproceso, etc.).",
@@ -362,6 +381,7 @@ const TABLES: TableDef[] = [
   {
     id: "process_documents",
     title: "process_documents",
+    displayName: "Documentos",
     subtitle: "Documentos adjuntos",
     description: "Documentos (en Storage) adjuntos polimórficamente a un nivel BPM.",
     details: "target_level + target_id identifican qué modelo del BPM tiene este documento adjunto.",
@@ -383,6 +403,7 @@ const TABLES: TableDef[] = [
   {
     id: "profiles",
     title: "profiles",
+    displayName: "Perfiles de Usuario",
     subtitle: "Perfiles de usuario",
     description: "Perfil público de cada usuario autenticado de la aplicación.",
     details: "Se crea automáticamente al registrarse el usuario (trigger handle_new_user). El id coincide con auth.users.id.",
@@ -398,6 +419,7 @@ const TABLES: TableDef[] = [
   {
     id: "user_roles",
     title: "user_roles",
+    displayName: "Roles de Usuario",
     subtitle: "Roles por usuario",
     description: "Asignación de roles de la aplicación (administrador, dueño de proceso, etc.) a cada usuario.",
     details: "Se consulta vía la función SECURITY DEFINER has_role(uid, role) para evitar recursión en las políticas RLS.",
@@ -416,6 +438,7 @@ const TABLES: TableDef[] = [
   {
     id: "node_categories",
     title: "node_categories",
+    displayName: "Categorías de Nodo",
     subtitle: "Categorías de nodo",
     description: "Nivel superior de la taxonomía de nodos del modelador (actividad, evento, gateway, …).",
     color: "#65a30d",
@@ -431,6 +454,7 @@ const TABLES: TableDef[] = [
   {
     id: "node_kinds",
     title: "node_kinds",
+    displayName: "Tipos Básicos de Nodo",
     subtitle: "Tipos básicos de nodo",
     description: "Tipos básicos dentro de cada categoría (tarea, decisión, evento inicio, …).",
     color: "#4d7c0f",
@@ -448,6 +472,7 @@ const TABLES: TableDef[] = [
   {
     id: "node_types",
     title: "node_types",
+    displayName: "Variantes de Nodo",
     subtitle: "Variantes específicas",
     description: "Variantes específicas dentro de un kind (p. ej. tarea de usuario, tarea de servicio, …).",
     color: "#15803d",
@@ -463,6 +488,7 @@ const TABLES: TableDef[] = [
   {
     id: "node_subtypes",
     title: "node_subtypes",
+    displayName: "Subtipos de Nodo",
     subtitle: "Subtipos opcionales",
     description: "Subdivisión opcional de un node_type para taxonomías muy específicas.",
     color: "#166534",
@@ -481,6 +507,7 @@ const TABLES: TableDef[] = [
   {
     id: "tasks",
     title: "tasks",
+    displayName: "Tareas (Fichas SIPOC)",
     subtitle: "Tareas (ficha SIPOC)",
     description: "Ficha de tarea con misión, entradas, salidas, recursos, requisitos del cliente, proveedores y normativa.",
     details: "Las tareas pueden organizarse jerárquicamente con parent_id y se vinculan al diagrama del modelador a través de modeler_diagram_id + modeler_node_id.",
@@ -504,6 +531,7 @@ const TABLES: TableDef[] = [
   {
     id: "change_log",
     title: "change_log",
+    displayName: "Bitácora de Cambios",
     subtitle: "Bitácora de cambios",
     description: "Registro inmutable de inserciones, actualizaciones y borrados sobre las tablas BPM.",
     details: "Se alimenta a través del trigger log_bpm_change(). entity_table guarda el nombre de la tabla, entity_id la fila afectada y diff el cambio en JSON.",
@@ -522,6 +550,7 @@ const TABLES: TableDef[] = [
   {
     id: "email_send_log",
     title: "email_send_log",
+    displayName: "Envíos de Correo",
     subtitle: "Envíos de correo",
     description: "Histórico de envíos transaccionales y de autenticación realizados desde la plataforma.",
     color: "#737373",
@@ -539,6 +568,7 @@ const TABLES: TableDef[] = [
   {
     id: "email_send_state",
     title: "email_send_state",
+    displayName: "Estado de Envío",
     subtitle: "Estado del envío de correo",
     description: "Configuración global del worker de correo (ventanas de reintento, tamaño de lote, retardos, TTL).",
     color: "#a3a3a3",
@@ -556,6 +586,7 @@ const TABLES: TableDef[] = [
   {
     id: "email_unsubscribe_tokens",
     title: "email_unsubscribe_tokens",
+    displayName: "Tokens de Baja",
     subtitle: "Tokens de baja",
     description: "Tokens únicos que permiten a un destinatario darse de baja de los correos no transaccionales.",
     color: "#d4d4d4",
@@ -571,6 +602,7 @@ const TABLES: TableDef[] = [
   {
     id: "suppressed_emails",
     title: "suppressed_emails",
+    displayName: "Lista de Supresión",
     subtitle: "Lista de supresión",
     description: "Correos que no deben recibir más envíos (bajas, rebotes duros, quejas de spam).",
     color: "#a1a1aa",
@@ -598,7 +630,7 @@ function TableNode({ data, selected }: { data: TableNodeData; selected?: boolean
     : data.countLoading
       ? "registros: cargando…"
       : `registros${data.entityFiltered ? ` (entidad: ${data.entityName})` : " (total)"}: ${data.recordCount ?? "—"}`;
-  const tooltip = `${data.title}\n\n${data.description}\n\n${countText}`;
+  const tooltip = `${data.displayName ?? data.title}\n\n${data.description}\n\n${countText}`;
   return (
     <div
       title={tooltip}
@@ -614,9 +646,14 @@ function TableNode({ data, selected }: { data: TableNodeData; selected?: boolean
       <Handle type="target" position={Position.Top} id="t" style={{ background: data.color, width: 8, height: 8 }} />
       <Handle type="source" position={Position.Bottom} id="b" style={{ background: data.color, width: 8, height: 8 }} />
       <div className="px-3 py-2 flex items-center justify-between gap-2" style={{ background: data.color, color: "white" }}>
-        <div>
-          <div className="font-semibold font-mono">{data.title}</div>
-          {data.subtitle && <div className="text-[10px] opacity-90">{data.subtitle}</div>}
+        <div className="min-w-0">
+          <div className="font-semibold truncate">{data.displayName ?? data.title}</div>
+          <div className="text-[10px] opacity-90 flex items-center gap-1">
+            <span className="font-mono truncate">{data.title}</span>
+            {data.kind === "type" && (
+              <span className="shrink-0 rounded bg-white/20 px-1 py-0.5 text-[9px] leading-none">catálogo</span>
+            )}
+          </div>
         </div>
         {data.kind !== "type" && (
           <span
@@ -745,7 +782,7 @@ function EntitiesErPage() {
   const { entity: selectedEntity } = useSelectedEntity();
   const selectedEntityId = selectedEntity?.id ?? null;
   const [selectedId, setSelectedId] = useState<string>("entities");
-  const [included, setIncluded] = useState<Set<string>>(() => new Set());
+  const [included, setIncluded] = useState<Set<string>>(() => new Set(["entities", "entity_process_links", "macroprocesses", "processes", "subprocesses", "executable_elements", "process_diagrams", "subprocess_elements", "tasks", "process_indicators", "process_risks", "process_documents", "profiles", "user_roles", "process_type", "element_kind", "diagram_type", "node_categories", "node_kinds", "node_types", "node_subtypes"]));
   const [maintainId, setMaintainId] = useState<string | null>(null);
 
   // Undirected adjacency from FK edges (table -> set of related tables)
@@ -1071,19 +1108,17 @@ function EntitiesErPage() {
                               style={{ background: t.color }}
                             />
                             <span className="min-w-0 flex-1">
-                              <span className="font-mono truncate block" title={t.title}>{t.title}</span>
-                              {t.subtitle && (
-                                <span className="block text-[10px] text-muted-foreground leading-snug" title={t.description}>
-                                  {t.subtitle}
-                                </span>
-                              )}
+                              <span className="truncate block font-medium" title={t.title}>{t.displayName ?? t.title}</span>
+                              <span className="block text-[10px] text-muted-foreground leading-snug font-mono" title={t.description}>
+                                {t.title}{t.kind === "type" ? " (catálogo)" : ""}
+                              </span>
                             </span>
                           </label>
                           {hasRel && (
                             <button
                               type="button"
                               onClick={() => addRelatedTo(t.id)}
-                              title={`Añade ${t.title} y sus tablas relacionadas (transitivamente) a la selección.`}
+                              title={`Añade ${t.displayName ?? t.title} y sus tablas relacionadas (transitivamente) a la selección.`}
                               className="shrink-0 text-[10px] px-1.5 py-0.5 rounded border bg-muted/40 hover:bg-muted text-muted-foreground"
                             >
                               +rel
@@ -1132,10 +1167,12 @@ function EntitiesErPage() {
             {kindLabel[selected.kind]}
           </div>
           <div>
-            <div className="font-display text-xl font-semibold font-mono" style={{ color: selected.color }}>
-              {selected.title}
+            <div className="font-display text-xl font-semibold" style={{ color: selected.color }}>
+              {selected.displayName ?? selected.title}
             </div>
-            {selected.subtitle && <div className="text-sm text-muted-foreground">{selected.subtitle}</div>}
+            <div className="text-sm text-muted-foreground font-mono">
+              {selected.title}{selected.kind === "type" ? " (catálogo)" : ""}
+            </div>
           </div>
           <p className="text-sm leading-relaxed">{selected.description}</p>
           {selected.details && (
