@@ -62,6 +62,7 @@ function AdminUsers() {
   const toggleRole = async (userId: string, role: AppRole, has: boolean) => {
     if (!currentClientId) return toast.error("Sin tenant activo");
     if (has) {
+      if (!window.confirm("¿Eliminar el rol «" + role + "» a este usuario?")) return;
       const { error } = await supabase.from("user_roles").delete()
         .eq("user_id", userId).eq("role", role).eq("client_id", currentClientId);
       if (error) return toast.error(error.message);

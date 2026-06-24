@@ -146,7 +146,10 @@ export function EntityFieldsDialog({
   });
 
   const deleteFieldMut = useMutation({
-    mutationFn: (id: string) => deleteFieldFn({ data: { id } }),
+    mutationFn: (id: string) => {
+      if (!window.confirm("¿Eliminar este campo del catálogo?")) return Promise.resolve();
+      return deleteFieldFn({ data: { id } });
+    },
     onSuccess: () => { invalidateAll(); toast.success("Campo borrado"); },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -231,7 +234,10 @@ export function EntityFieldsDialog({
   });
 
   const deleteColMut = useMutation({
-    mutationFn: (id: string) => deleteColumnFn({ data: { id } }),
+    mutationFn: (id: string) => {
+      if (!window.confirm("¿Eliminar esta columna de la tabla?")) return Promise.resolve();
+      return deleteColumnFn({ data: { id } });
+    },
     onSuccess: () => invalidateAll(),
     onError: (e: Error) => toast.error(e.message),
   });

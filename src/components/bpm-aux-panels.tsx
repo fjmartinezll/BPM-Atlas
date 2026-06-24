@@ -221,7 +221,23 @@ function RisksPanel({ level, id }: Props) {
               </div>
               {r.control && <p className="text-xs text-muted-foreground">Control: {r.control}</p>}
             </div>
-            {canEdit && <Button size="icon" variant="ghost" onClick={() => remove(r.id)}><Trash2 className="h-4 w-4" /></Button>}
+            {canEdit && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button size="icon" variant="ghost"><Trash2 className="h-4 w-4" /></Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>¿Eliminar riesgo?</AlertDialogTitle>
+                    <AlertDialogDescription>Esta acción no se puede deshacer. Se eliminará «{r.description}».</AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => remove(r.id)}>Eliminar</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
           </li>
         ))}
         {!q.isLoading && (q.data ?? []).length === 0 && <li className="px-3 py-4 text-sm text-muted-foreground">Sin riesgos.</li>}
@@ -296,7 +312,23 @@ function DocumentsPanel({ level, id }: Props) {
             </div>
             <div className="flex gap-1">
               <Button size="icon" variant="ghost" onClick={() => download(r.storage_path)}><Download className="h-4 w-4" /></Button>
-              {canEdit && <Button size="icon" variant="ghost" onClick={() => remove(r)}><Trash2 className="h-4 w-4" /></Button>}
+              {canEdit && (
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button size="icon" variant="ghost"><Trash2 className="h-4 w-4" /></Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>¿Eliminar documento?</AlertDialogTitle>
+                      <AlertDialogDescription>Esta acción no se puede deshacer. Se eliminará «{r.name}» y su archivo asociado.</AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                      <AlertDialogAction onClick={() => remove(r)}>Eliminar</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              )}
             </div>
           </li>
         ))}
@@ -366,7 +398,23 @@ function EntityLinksPanel({ level, id }: Props) {
               <Badge variant="outline" className="ml-2 capitalize">{r.role}</Badge>
               {r.notes && <p className="text-xs text-muted-foreground">{r.notes}</p>}
             </div>
-            {canEdit && <Button size="icon" variant="ghost" onClick={() => remove(r.id)}><Trash2 className="h-4 w-4" /></Button>}
+            {canEdit && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button size="icon" variant="ghost"><Trash2 className="h-4 w-4" /></Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>¿Eliminar vínculo?</AlertDialogTitle>
+                    <AlertDialogDescription>Esta acción no se puede deshacer. Se eliminará la relación con «{r.entity?.name ?? r.entity_id}».</AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => remove(r.id)}>Eliminar</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
           </li>
         ))}
         {!q.isLoading && (q.data ?? []).length === 0 && <li className="px-3 py-4 text-sm text-muted-foreground">Sin vínculos.</li>}
