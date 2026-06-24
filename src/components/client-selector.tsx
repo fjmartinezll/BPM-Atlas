@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Building2, FlaskConical, Rocket, Box, ListTree, ArrowRightLeft } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import { STALE } from "@/lib/query-keys";
 import { useClient, type Environment } from "@/lib/client-context";
 import { useAuth } from "@/lib/auth-context";
 import { useSelectedEntity } from "@/lib/selected-entity";
@@ -38,6 +39,7 @@ export function ClientSelector() {
 
   const entitiesQ = useQuery({
     queryKey: ["entities-for-selector", currentClientId, environment],
+    staleTime: STALE.REFERENCE,
     enabled: !!currentClientId,
     queryFn: async () => {
       const { data, error } = await supabase

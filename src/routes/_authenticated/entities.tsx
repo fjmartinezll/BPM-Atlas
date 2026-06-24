@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, type FormEvent } from "react";
 
 import { supabase } from "@/integrations/supabase/client";
+import { STALE } from "@/lib/query-keys";
 import { useAuth } from "@/lib/auth-context";
 import { useClient } from "@/lib/client-context";
 import { Button } from "@/components/ui/button";
@@ -53,8 +54,9 @@ function EntitiesPage() {
 
   const entities = useQuery({
     queryKey: ["entities"],
+    staleTime: STALE.REFERENCE,
     queryFn: async () => {
-      const { data, error } = await supabase.from("entities").select("*").order("name");
+      const { data, error } = await supabase.from("entities").select("id, name, description, mission, vision, strategy, status").order("name");
       if (error) throw error;
       return (data ?? []) as Entity[];
     },
@@ -62,6 +64,7 @@ function EntitiesPage() {
 
   const macros = useQuery({
     queryKey: ["entities", "all-macros"],
+    staleTime: STALE.REFERENCE,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("macroprocesses")
@@ -181,10 +184,10 @@ function EntitiesPage() {
                 </Button>
                 {canEdit && (
                   <>
-                    <Button variant="ghost" size="icon" onClick={() => startEdit(e)}><Pencil className="h-4 w-4" /></Button>
+                    <Button variant="ghost" size="icon" onClick={() => startEdit(e)} aria-label="Editar"><Pencil className="h-4 w-4" /></Button>
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
-                        <Button variant="ghost" size="icon"><Trash2 className="h-4 w-4" /></Button>
+                        <Button variant="ghost" size="icon" aria-label="Eliminar"><Trash2 className="h-4 w-4" /></Button>
                       </AlertDialogTrigger>
                       <AlertDialogContent>
                         <AlertDialogHeader>

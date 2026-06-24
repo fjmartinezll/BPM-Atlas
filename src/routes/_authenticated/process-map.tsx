@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { STALE } from "@/lib/query-keys";
 import { useAuth } from "@/lib/auth-context";
 import { useSelectedEntity } from "@/lib/selected-entity";
 import { Button } from "@/components/ui/button";
@@ -51,6 +52,7 @@ function ProcessMapPage() {
 
   const entitiesQ = useQuery({
     queryKey: ["entities-map"],
+    staleTime: STALE.REFERENCE,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("entities")
@@ -63,6 +65,7 @@ function ProcessMapPage() {
 
   const macrosQ = useQuery({
     queryKey: ["macros-map"],
+    staleTime: STALE.REFERENCE,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("macroprocesses")

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { STALE } from "@/lib/query-keys";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -29,6 +30,7 @@ export function ImportVariablesDialog({
 
   const scopesQuery = useQuery({
     queryKey: ["process-variables-scopes", scope.clientId, scope.environment, scope.entityId, open],
+    staleTime: STALE.REFERENCE,
     enabled: open,
     queryFn: async () => {
       const { data, error } = await supabase

@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/lib/error-capture";
 
 export const Route = createFileRoute("/signup")({ component: SignupPage });
 
@@ -55,14 +56,14 @@ function SignupPage() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, locale }),
-    }).catch(() => {});
+    }).catch((err) => console.warn("Operation failed:", getErrorMessage(err)));
     // Fire-and-forget: send confirmation email to the new user with a token
     // that will auto-provision their private tenant + dueno_proceso role.
     void fetch("/api/public/send-welcome-confirm", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email }),
-    }).catch(() => {});
+    }).catch((err) => console.warn("Operation failed:", getErrorMessage(err)));
     void navigate({ to: "/login" });
   };
 

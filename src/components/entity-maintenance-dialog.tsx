@@ -288,7 +288,7 @@ export function EntityMaintenanceDialog({
                       <td className="px-2 py-1.5 font-mono text-muted-foreground">{i + 1}</td>
                       <td className="px-2 py-1.5 font-mono truncate max-w-md">{labelOf(r) || "(sin etiqueta)"}</td>
                       <td className="px-2 py-1.5 text-right">
-                        <Button variant="ghost" size="sm" onClick={() => startEdit(r)}>
+                        <Button variant="ghost" size="sm" onClick={() => startEdit(r)} aria-label="Editar">
                           <Pencil className="h-3.5 w-3.5" />
                         </Button>
                         <Button
@@ -297,6 +297,7 @@ export function EntityMaintenanceDialog({
                           onClick={() => {
                             if (confirm(`¿Eliminar el registro "${labelOf(r) || r.id}"?`)) delMut.mutate(r.id);
                           }}
+                          aria-label="Eliminar"
                         >
                           <Trash2 className="h-3.5 w-3.5 text-destructive" />
                         </Button>

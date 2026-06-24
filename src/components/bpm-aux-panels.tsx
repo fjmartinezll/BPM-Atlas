@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { STALE } from "@/lib/query-keys";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -73,7 +74,7 @@ function IndicatorsPanel({ level, id }: Props) {
   const q = useQuery({
     queryKey: key,
     queryFn: async () => {
-      const { data, error } = await sb.from("process_indicators").select("*").eq("target_level", level).eq("target_id", id).order("code");
+      const { data, error } = await sb.from("process_indicators").select("id, code, name, formula, unit, target_value, frequency").eq("target_level", level).eq("target_id", id).order("code");
       if (error) throw error;
       return (data ?? []) as Indicator[];
     },
@@ -182,7 +183,7 @@ function RisksPanel({ level, id }: Props) {
   const q = useQuery({
     queryKey: key,
     queryFn: async () => {
-      const { data, error } = await sb.from("process_risks").select("*").eq("target_level", level).eq("target_id", id).order("code");
+      const { data, error } = await sb.from("process_risks").select("id, code, description, probability, impact, control").eq("target_level", level).eq("target_id", id).order("code");
       if (error) throw error;
       return (data ?? []) as Risk[];
     },
@@ -224,7 +225,7 @@ function RisksPanel({ level, id }: Props) {
             {canEdit && (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button size="icon" variant="ghost"><Trash2 className="h-4 w-4" /></Button>
+                  <Button size="icon" variant="ghost" aria-label="Eliminar riesgo"><Trash2 className="h-4 w-4" /></Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
@@ -265,7 +266,7 @@ function DocumentsPanel({ level, id }: Props) {
   const q = useQuery({
     queryKey: key,
     queryFn: async () => {
-      const { data, error } = await sb.from("process_documents").select("*").eq("target_level", level).eq("target_id", id).order("created_at", { ascending: false });
+      const { data, error } = await sb.from("process_documents").select("id, name, version, mime_type, size_bytes, storage_path").eq("target_level", level).eq("target_id", id).order("created_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as DocRow[];
     },
@@ -311,11 +312,11 @@ function DocumentsPanel({ level, id }: Props) {
               <div className="text-xs text-muted-foreground">{r.mime_type ?? ""} {r.size_bytes ? `· ${(r.size_bytes / 1024).toFixed(1)} KB` : ""}</div>
             </div>
             <div className="flex gap-1">
-              <Button size="icon" variant="ghost" onClick={() => download(r.storage_path)}><Download className="h-4 w-4" /></Button>
+              <Button size="icon" variant="ghost" onClick={() => download(r.storage_path)} aria-label="Descargar"><Download className="h-4 w-4" /></Button>
               {canEdit && (
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
-                    <Button size="icon" variant="ghost"><Trash2 className="h-4 w-4" /></Button>
+                    <Button size="icon" variant="ghost" aria-label="Eliminar documento"><Trash2 className="h-4 w-4" /></Button>
                   </AlertDialogTrigger>
                   <AlertDialogContent>
                     <AlertDialogHeader>
@@ -367,6 +368,7 @@ function EntityLinksPanel({ level, id }: Props) {
   });
   const entitiesQ = useQuery({
     queryKey: ["entities-options"],
+    staleTime: STALE.REFERENCE,
     queryFn: async () => {
       const { data } = await supabase.from("entities").select("id,name").order("name");
       return (data ?? []) as { id: string; name: string }[];
@@ -401,7 +403,7 @@ function EntityLinksPanel({ level, id }: Props) {
             {canEdit && (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button size="icon" variant="ghost"><Trash2 className="h-4 w-4" /></Button>
+                  <Button size="icon" variant="ghost" aria-label="Eliminar vínculo"><Trash2 className="h-4 w-4" /></Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>

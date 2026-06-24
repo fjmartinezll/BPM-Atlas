@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { STALE } from "@/lib/query-keys";
 import { supabase } from "@/integrations/supabase/client";
 import { useClient } from "@/lib/client-context";
 import { Button } from "@/components/ui/button";
@@ -286,7 +287,7 @@ function DeleteAction({ table, id, label }: { table: "entities" | "macroprocesse
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-rose-600 hover:text-rose-700 hover:bg-rose-500/10">
+        <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-rose-600 hover:text-rose-700 hover:bg-rose-500/10" aria-label="Eliminar">
           <Trash2 className="h-3.5 w-3.5" />
         </Button>
       </AlertDialogTrigger>
@@ -330,6 +331,7 @@ type HierSubproc = { id: string; name: string; code: string; status: string; mis
 export function HierarchyManager() {
   const { data, isLoading } = useQuery({
     queryKey: ["cc-hierarchy"],
+    staleTime: STALE.REFERENCE,
     queryFn: async (): Promise<HierEntity[]> => {
       const [{ data: ents }, { data: macros }, { data: procs }, { data: subs }] = await Promise.all([
         supabase.from("entities").select("id,name,status,description").order("name"),
@@ -389,7 +391,7 @@ function EntityNode({ entity }: { entity: HierEntity }) {
         </CollapsibleTrigger>
         <div className="flex items-center gap-1 flex-shrink-0">
           <MacroDialog entityId={entity.id} trigger={<Button size="sm" variant="ghost" className="h-7 text-xs"><Plus className="h-3.5 w-3.5 mr-1" />Macro</Button>} />
-          <EntityDialog entity={entity} trigger={<Button size="sm" variant="ghost" className="h-7 w-7 p-0"><Pencil className="h-3.5 w-3.5" /></Button>} />
+          <EntityDialog entity={entity} trigger={<Button size="sm" variant="ghost" className="h-7 w-7 p-0" aria-label="Editar entidad"><Pencil className="h-3.5 w-3.5" /></Button>} />
           <DeleteAction table="entities" id={entity.id} label="entidad" />
         </div>
       </div>
@@ -420,7 +422,7 @@ function MacroNode({ macro }: { macro: HierMacro }) {
           <ProcOrSubDialog table="processes" parentId={macro.id} titleNew="Nuevo proceso" titleEdit="Editar proceso"
             trigger={<Button size="sm" variant="ghost" className="h-6 text-xs"><Plus className="h-3 w-3 mr-1" />Proceso</Button>} />
           <MacroDialog entityId={macro.entity_id} macro={macro}
-            trigger={<Button size="sm" variant="ghost" className="h-6 w-6 p-0"><Pencil className="h-3 w-3" /></Button>} />
+            trigger={<Button size="sm" variant="ghost" className="h-6 w-6 p-0" aria-label="Editar macroproceso"><Pencil className="h-3 w-3" /></Button>} />
           <DeleteAction table="macroprocesses" id={macro.id} label="macroproceso" />
         </div>
       </div>
@@ -450,7 +452,7 @@ function ProcessNode({ process }: { process: HierProcess }) {
           <ProcOrSubDialog table="subprocesses" parentId={process.id} titleNew="Nuevo subproceso" titleEdit="Editar subproceso"
             trigger={<Button size="sm" variant="ghost" className="h-6 text-xs"><Plus className="h-3 w-3 mr-1" />Sub</Button>} />
           <ProcOrSubDialog table="processes" parentId={process.parent_id} item={process} titleNew="" titleEdit="Editar proceso"
-            trigger={<Button size="sm" variant="ghost" className="h-6 w-6 p-0"><Pencil className="h-3 w-3" /></Button>} />
+            trigger={<Button size="sm" variant="ghost" className="h-6 w-6 p-0" aria-label="Editar proceso"><Pencil className="h-3 w-3" /></Button>} />
           <DeleteAction table="processes" id={process.id} label="proceso" />
         </div>
       </div>
@@ -465,7 +467,7 @@ function ProcessNode({ process }: { process: HierProcess }) {
               </div>
               <div className="flex items-center gap-1 flex-shrink-0">
                 <ProcOrSubDialog table="subprocesses" parentId={s.parent_id} item={s} titleNew="" titleEdit="Editar subproceso"
-                  trigger={<Button size="sm" variant="ghost" className="h-6 w-6 p-0"><Pencil className="h-3 w-3" /></Button>} />
+                  trigger={<Button size="sm" variant="ghost" className="h-6 w-6 p-0" aria-label="Editar subproceso"><Pencil className="h-3 w-3" /></Button>} />
                 <DeleteAction table="subprocesses" id={s.id} label="subproceso" />
               </div>
             </div>

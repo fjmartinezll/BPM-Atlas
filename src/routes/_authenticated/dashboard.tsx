@@ -6,6 +6,7 @@ import {
   ChevronRight, ChevronDown, Workflow, GitBranch, ListTree, Zap, Database,
   Network, Building2, FlaskConical, Rocket, ArrowRightLeft, Trash2,
 } from "lucide-react";
+import { STALE } from "@/lib/query-keys";
 import { cn } from "@/lib/utils";
 import {
   listStructure, migrateDiagram, deleteTenant, deleteEntity, deleteDiagram,
@@ -57,6 +58,7 @@ function StructurePage() {
 
   const q = useQuery({
     queryKey: ["structure-admin"],
+    staleTime: STALE.REFERENCE,
     queryFn: () => listFn(),
   });
 

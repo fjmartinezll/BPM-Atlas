@@ -16,6 +16,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { STALE } from "@/lib/query-keys";
 import {
   listTaxonomy, upsertNodeType, deleteNodeType, upsertNodeSubtype, deleteNodeSubtype,
 } from "@/lib/node-taxonomy.functions";
@@ -80,6 +81,7 @@ function NodeTaxonomyPage() {
 
   const { data, isLoading } = useQuery({
     queryKey: ["node-taxonomy"],
+    staleTime: STALE.REFERENCE,
     queryFn: () => list(),
     enabled: isAdmin,
   });
@@ -260,10 +262,10 @@ function NodeTaxonomyPage() {
                                 {currentKind.code === "task" && <ModeBadge name={s.name} />}
                               </div>
                               <div className="flex gap-0.5 shrink-0">
-                                <Button size="sm" variant="ghost" className="h-5 w-5 p-0" onClick={() => setSubDialog({ open: true, typeId: t.id, row: s })}>
+                                <Button size="sm" variant="ghost" className="h-5 w-5 p-0" onClick={() => setSubDialog({ open: true, typeId: t.id, row: s })} aria-label="Editar">
                                   <Pencil className="h-3 w-3" />
                                 </Button>
-                                <Button size="sm" variant="ghost" className="h-5 w-5 p-0" onClick={() => setConfirm({ kind: "sub", id: s.id })}>
+                                <Button size="sm" variant="ghost" className="h-5 w-5 p-0" onClick={() => setConfirm({ kind: "sub", id: s.id })} aria-label="Eliminar">
                                   <Trash2 className="h-3 w-3" />
                                 </Button>
                               </div>

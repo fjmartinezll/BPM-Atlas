@@ -6,6 +6,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { useClient } from "@/lib/client-context";
 import { LEVELS, LEVEL_TO_I18N, CHILD_OF, type LevelKey } from "@/lib/bpm";
+import { STALE } from "@/lib/query-keys";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -74,6 +75,7 @@ function NodePage() {
 
   const entitiesQ = useQuery({
     queryKey: ["entities-options"],
+    staleTime: STALE.REFERENCE,
     enabled: lvl === "macroprocesses",
     queryFn: async () => {
       const { data, error } = await supabase.from("entities").select("id,name").order("name");
@@ -84,6 +86,7 @@ function NodePage() {
 
   const node = useQuery({
     queryKey: ["node", lvl, id],
+    staleTime: STALE.REFERENCE,
     enabled: !isNew,
     queryFn: async () => {
       const { data, error } = await dyn(lvl).select("*").eq("id", id).maybeSingle();
@@ -123,6 +126,7 @@ function NodePage() {
 
   const children = useQuery({
     queryKey: ["children", lvl, id],
+    staleTime: STALE.REFERENCE,
     enabled: !isNew && !!childLvl,
     queryFn: async () => {
       // tasks → executable_elements are linked via task_id, not parent_id

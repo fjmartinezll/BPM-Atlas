@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { STALE } from "@/lib/query-keys";
 import { useServerFn } from "@tanstack/react-start";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -68,6 +69,7 @@ export function EntityFieldsDialog({
 
   const tablesQ = useQuery({
     queryKey: ["entity-diagram-tables", diagramId],
+    staleTime: STALE.REFERENCE,
     enabled: open && !!diagramId,
     queryFn: async () =>
       (await listTablesFn({ data: { diagramId } })) as { id: string; label: string }[],
@@ -82,12 +84,14 @@ export function EntityFieldsDialog({
 
   const catalogQ = useQuery({
     queryKey: ["entity-field-catalog", clientId, environment],
+    staleTime: STALE.REFERENCE,
     enabled: open,
     queryFn: async () => (await listCatalogFn({ data: { clientId, environment } })) as CatalogRow[],
   });
 
   const columnsQ = useQuery({
     queryKey: ["entity-table-columns", diagramId],
+    staleTime: STALE.REFERENCE,
     enabled: open && !!diagramId,
     queryFn: async () => (await listColumnsFn({ data: { diagramId } })) as ColumnRow[],
   });
@@ -363,10 +367,11 @@ export function EntityFieldsDialog({
                                 renameTableMut.mutate({ id: t.id, label }, {
                                   onSuccess: () => setEditingTableLabel(null),
                                 });
-                              }}>
+                              }}
+                              aria-label="Confirmar">
                               <Check className="h-3 w-3" />
                             </Button>
-                            <Button size="sm" variant="ghost" onClick={() => setEditingTableLabel(null)}>
+                            <Button size="sm" variant="ghost" onClick={() => setEditingTableLabel(null)} aria-label="Cancelar">
                               <X className="h-3 w-3" />
                             </Button>
                           </>
@@ -617,11 +622,12 @@ function CatalogEditableRow({
         Guardar
       </Button>
       <Button size="sm" variant="ghost" className="col-span-1 px-1"
-        onClick={onDuplicate}>
+        onClick={onDuplicate} aria-label="Duplicar">
         <Copy className="h-3.5 w-3.5" />
       </Button>
       <button type="button" onClick={onDelete} disabled={deleteDisabled}
         title={deleteDisabled ? "No se puede eliminar: el campo está asociado a una tabla" : undefined}
+        aria-label="Eliminar"
         className="col-span-1 justify-self-end text-destructive hover:opacity-70 disabled:opacity-30 disabled:cursor-not-allowed">
         <Trash2 className="h-3.5 w-3.5" />
       </button>
@@ -716,7 +722,7 @@ function ColumnEditableRow({
           className="text-muted-foreground hover:text-foreground disabled:opacity-30" aria-label="Bajar">
           <ArrowDown className="h-3.5 w-3.5" />
         </button>
-        <button type="button" onClick={onDelete} className="text-destructive hover:opacity-70">
+        <button type="button" onClick={onDelete} className="text-destructive hover:opacity-70" aria-label="Eliminar">
           <Trash2 className="h-3.5 w-3.5" />
         </button>
       </div>

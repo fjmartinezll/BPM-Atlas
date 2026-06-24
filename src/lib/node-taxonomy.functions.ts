@@ -16,10 +16,10 @@ export const listTaxonomy = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const { supabase } = context;
     const [cats, kinds, types, subtypes] = await Promise.all([
-      supabase.from("node_categories").select("*").order("name"),
-      supabase.from("node_kinds").select("*").order("name"),
-      supabase.from("node_types").select("*").order("name"),
-      supabase.from("node_subtypes").select("*").order("name"),
+      supabase.from("node_categories").select("id, code, name").order("name"),
+      supabase.from("node_kinds").select("id, code, name, category_id, is_container").order("name"),
+      supabase.from("node_types").select("id, kind_id, name, description").order("name"),
+      supabase.from("node_subtypes").select("id, type_id, name, description").order("name"),
     ]);
     for (const r of [cats, kinds, types, subtypes]) if (r.error) throw new Error(r.error.message);
     return {

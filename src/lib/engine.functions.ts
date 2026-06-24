@@ -254,7 +254,7 @@ export const startInstance = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await ensureCanEdit(context);
     const { supabase, userId } = context;
-    const { data: def, error } = await supabase.from("process_definitions").select("*").eq("id", data.definitionId).single();
+    const { data: def, error } = await supabase.from("process_definitions").select("id, status, nodes, diagram_id, client_id, environment").eq("id", data.definitionId).single();
     if (error || !def) throw new Error(error?.message ?? "Definición no encontrada");
     if (def.status !== "active") throw new Error("La definición no está activa");
     const nodes = ((def.nodes ?? []) as unknown) as DefNode[];
@@ -359,7 +359,7 @@ export const completeTask = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => z.object({ taskId: z.string().uuid(), result: z.record(z.string(), z.unknown()).optional() }).parse(d))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    const { data: task, error } = await supabase.from("process_tasks").select("*").eq("id", data.taskId).single();
+    const { data: task, error } = await supabase.from("process_tasks").select("id, instance_id, token_id, node_id, status, assignee_id").eq("id", data.taskId).single();
     if (error || !task) throw new Error(error?.message ?? "Tarea no encontrada");
     if (task.status !== "pending" && task.status !== "in_progress") throw new Error("La tarea no está pendiente");
 
@@ -473,9 +473,9 @@ export const getInstanceDetail = createServerFn({ method: "POST" })
     const { supabase } = context;
     const [inst, toks, tasks, evs] = await Promise.all([
       supabase.from("process_instances").select("*, process_definitions(name, version, nodes, edges)").eq("id", data.instanceId).single(),
-      supabase.from("process_tokens").select("*").eq("instance_id", data.instanceId).order("entered_at", { ascending: true }),
-      supabase.from("process_tasks").select("*").eq("instance_id", data.instanceId).order("created_at", { ascending: true }),
-      supabase.from("process_events_log").select("*").eq("instance_id", data.instanceId).order("created_at", { ascending: false }).limit(500),
+      supabase.from("process_tokens").select("id, node_id, status, entered_at, exited_at, wake_at").eq("instance_id", data.instanceId).order("entered_at", { ascending: true }),
+      supabase.from("process_tasks").select("id, node_id, status, task_kind, lane_role, error").eq("instance_id", data.instanceId).order("created_at", { ascending: true }),
+      supabase.from("process_events_log").select("id, node_id, event_type, created_at, payload").eq("instance_id", data.instanceId).order("created_at", { ascending: false }).limit(500),
     ]);
     if (inst.error) throw new Error(inst.error.message);
     return { instance: inst.data, tokens: toks.data ?? [], tasks: tasks.data ?? [], events: evs.data ?? [] };

@@ -15,6 +15,14 @@ if (typeof globalThis.addEventListener === "function") {
   );
 }
 
+export function getErrorMessage(e: unknown): string {
+  if (e instanceof Error) return e.message;
+  if (typeof e === "string") return e;
+  if (e && typeof e === "object" && "message" in e && typeof (e as Record<string, unknown>).message === "string")
+    return (e as Record<string, unknown>).message as string;
+  return "Error desconocido";
+}
+
 export function consumeLastCapturedError(): unknown {
   if (!lastCapturedError) return undefined;
   if (Date.now() - lastCapturedError.at > TTL_MS) {

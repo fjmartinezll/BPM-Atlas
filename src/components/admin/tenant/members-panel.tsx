@@ -11,6 +11,7 @@ import {
   resendEmailVerification,
   type TenantMember,
 } from "@/lib/tenant-admin.functions";
+import { STALE } from "@/lib/query-keys";
 import { useAuth } from "@/lib/auth-context";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -45,6 +46,7 @@ export function TenantMembersPanel() {
 
   const q = useQuery({
     queryKey: ["tenant-members", tenantId],
+    staleTime: STALE.REFERENCE,
     enabled: !!tenantId,
     queryFn: () => listFn({ data: { clientId: tenantId! } }),
   });

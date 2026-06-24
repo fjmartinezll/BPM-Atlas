@@ -60,7 +60,7 @@ function GlobalScope() {
     queryFn: async () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data, error } = await (supabase as any).from("change_log")
-        .select("*").order("created_at", { ascending: false }).limit(500);
+        .select("id, entity_table, entity_id, action, created_at").order("created_at", { ascending: false }).limit(500);
       if (error) throw error;
       return (data ?? []) as GlobalRow[];
     },

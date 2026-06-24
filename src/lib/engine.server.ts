@@ -228,7 +228,7 @@ export async function advance(supabase: any, instanceId: string, actorId: string
   }
 
   const { data: waitingToks } = await supabase
-    .from("process_tokens").select("*")
+    .from("process_tokens").select("id, node_id, status")
     .eq("instance_id", instanceId).in("status", ["waiting_human", "waiting_timer"]);
   for (const wt of waitingToks ?? []) {
     if (wt.status === "waiting_human") {
@@ -254,7 +254,7 @@ export async function advance(supabase: any, instanceId: string, actorId: string
 
   for (let step = 0; step < 200; step++) {
     const { data: actives } = await supabase
-      .from("process_tokens").select("*")
+      .from("process_tokens").select("id, node_id, status")
       .eq("instance_id", instanceId).eq("status", "active").limit(1);
     const tok = actives?.[0];
     if (!tok) break;

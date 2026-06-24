@@ -292,10 +292,10 @@ function Page() {
                 <tr key={i} className="border-b align-top hover:bg-muted/30">
                   <td className="p-2">
                     <div className="flex gap-1">
-                      <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => openEdit(r)}>
+                      <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => openEdit(r)} aria-label="Editar">
                         <Pencil className="h-3.5 w-3.5" />
                       </Button>
-                      <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => void remove(r)}>
+                      <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => void remove(r)} aria-label="Eliminar">
                         <Trash2 className="h-3.5 w-3.5" />
                       </Button>
                     </div>

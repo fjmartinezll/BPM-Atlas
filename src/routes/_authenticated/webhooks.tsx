@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { STALE } from "@/lib/query-keys";
 import { Badge } from "@/components/ui/badge";
 
 export const Route = createFileRoute("/_authenticated/webhooks")({
@@ -23,7 +24,7 @@ export const Route = createFileRoute("/_authenticated/webhooks")({
 
 function WebhooksPage() {
   const listFn = useServerFn(listWebhookIntegrations);
-  const q = useQuery({ queryKey: ["webhook-integrations"], queryFn: () => listFn() });
+  const q = useQuery({ queryKey: ["webhook-integrations"], staleTime: STALE.REFERENCE, queryFn: () => listFn() });
 
   return (
     <div className="p-6 space-y-4">

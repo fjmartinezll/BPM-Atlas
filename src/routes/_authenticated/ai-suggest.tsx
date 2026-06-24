@@ -14,6 +14,7 @@ import {
   type AiSuggestion,
   type AiTask,
 } from "@/lib/ai.functions";
+import { STALE } from "@/lib/query-keys";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -739,6 +740,7 @@ function DbHierarchyDialog({
 }) {
   const q = useQuery({
     queryKey: ["db-hierarchy", entityId],
+    staleTime: STALE.REFERENCE,
     enabled: open,
     queryFn: async () => {
       let mpQ = supabase.from("macroprocesses").select("id,code,name,entity_id").order("code");

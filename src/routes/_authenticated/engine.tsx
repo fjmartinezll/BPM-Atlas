@@ -2,8 +2,10 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { STALE } from "@/lib/query-keys";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/lib/error-capture";
 import {
   listDefinitions, setDefinitionStatus, deleteDefinition, startInstance, getDefinitionInputs,
   listInstances, getInstanceDetail, pauseInstance, resumeInstance,
@@ -85,6 +87,7 @@ function EngineScopeHeader() {
   const { isAdmin } = useAuth();
   const entitiesQ = useQuery({
     queryKey: ["engine-header-entities", currentClientId, environment],
+    staleTime: STALE.REFERENCE,
     enabled: !!currentClientId,
     queryFn: async () => {
       const { data, error } = await supabase
@@ -230,7 +233,7 @@ function DefinitionsTab({ canEdit, draftsOnly = false }: { canEdit: boolean; dra
 
   const { currentClientId, environment } = useClient();
   const { entity } = useSelectedEntity();
-  const q = useQuery({ queryKey: ["engine-defs", currentClientId, environment, entity?.id ?? null], queryFn: () => listFn({ data: { clientId: currentClientId ?? undefined, environment, entityId: entity?.id ?? undefined } }) });
+  const q = useQuery({ queryKey: ["engine-defs", currentClientId, environment, entity?.id ?? null], staleTime: STALE.REFERENCE, queryFn: () => listFn({ data: { clientId: currentClientId ?? undefined, environment, entityId: entity?.id ?? undefined } }) });
   const draftsQ = useQuery({ queryKey: ["engine-my-drafts"], queryFn: () => listDraftsFn() });
   const draftsByDef = new Map((draftsQ.data ?? []).map((d) => [d.definitionId, d.updatedAt]));
   const [openStart, setOpenStart] = useState<{ id: string; name: string } | null>(null);
@@ -260,7 +263,7 @@ function DefinitionsTab({ canEdit, draftsOnly = false }: { canEdit: boolean; dra
           qc.invalidateQueries({ queryKey: ["engine-draft", vars.definitionId] });
           qc.invalidateQueries({ queryKey: ["engine-my-drafts"] });
         })
-        .catch(() => {});
+        .catch((err) => console.warn("Operation failed:", getErrorMessage(err)));
       setOpenStart(null);
     },
     onError: (e: Error) => toast.error(e.message),
@@ -804,6 +807,7 @@ function StartInstanceForm({
 
   const q = useQuery({
     queryKey: ["engine-def-inputs", definitionId],
+    staleTime: STALE.REFERENCE,
     queryFn: () => getInputsFn({ data: { definitionId } }),
   });
   const draftQ = useQuery({

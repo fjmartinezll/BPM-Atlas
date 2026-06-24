@@ -4,6 +4,7 @@ import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { ArrowRightLeft, ExternalLink, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { STALE } from "@/lib/query-keys";
 import { useClient, type Environment } from "@/lib/client-context";
 import {
   Dialog,
@@ -67,6 +68,7 @@ export function ScopeDiagramsDialog({
 
   const diagramsQ = useQuery({
     queryKey: ["scope-diagrams", clientId, environment],
+    staleTime: STALE.REFERENCE,
     enabled: open && !!clientId,
     queryFn: async () => {
       const { data, error } = await supabase
@@ -83,6 +85,7 @@ export function ScopeDiagramsDialog({
   // Entities available in target client/env
   const targetEntitiesQ = useQuery({
     queryKey: ["scope-target-entities", targetClient, targetEnv],
+    staleTime: STALE.REFERENCE,
     enabled: open && mode === "migrate" && !!targetClient,
     queryFn: async () => {
       const { data, error } = await supabase

@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { STALE } from "@/lib/query-keys";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
@@ -39,10 +40,11 @@ export function EntityPositionsDialog({ open, onOpenChange, entityId, entityName
 
   const positions = useQuery({
     queryKey: ["entity-positions", entityId],
+    staleTime: STALE.REFERENCE,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("entity_positions")
-        .select("*")
+        .select("id, entity_id, name, description, sort_order")
         .eq("entity_id", entityId)
         .order("sort_order")
         .order("name");
@@ -112,12 +114,12 @@ export function EntityPositionsDialog({ open, onOpenChange, entityId, entityName
                   </div>
                   {canEdit && (
                     <div className="flex gap-0.5">
-                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => startEdit(p)}>
+                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => startEdit(p)} aria-label="Editar cargo">
                         <Pencil className="h-3.5 w-3.5" />
                       </Button>
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-7 w-7"><Trash2 className="h-3.5 w-3.5" /></Button>
+                          <Button variant="ghost" size="icon" className="h-7 w-7" aria-label="Eliminar cargo"><Trash2 className="h-3.5 w-3.5" /></Button>
                         </AlertDialogTrigger>
                         <AlertDialogContent>
                           <AlertDialogHeader>

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { STALE } from "@/lib/query-keys";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,11 +34,12 @@ export function ProcessVariablesDialog({
 
   useQuery({
     queryKey: ["process-variables", ...scopeKey(scope), open],
+    staleTime: STALE.REFERENCE,
     enabled: open && !!scope.clientId,
     queryFn: async () => {
       let q = supabase
         .from("process_variables")
-        .select("*")
+        .select("id, name, label, var_type")
         .eq("client_id", scope.clientId!)
         .eq("environment", scope.environment);
       q = scope.entityId ? q.eq("entity_id", scope.entityId) : q.is("entity_id", null);

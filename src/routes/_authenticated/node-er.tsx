@@ -7,6 +7,7 @@ import {
 import "@xyflow/react/dist/style.css";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { STALE } from "@/lib/query-keys";
 
 export const Route = createFileRoute("/_authenticated/node-er")({
   component: NodeErPage,
@@ -36,6 +37,7 @@ type SubtypeRow = { id: string; type_id: string; name: string };
 function NodeErPage() {
   const taxonomy = useQuery({
     queryKey: ["er-taxonomy"],
+    staleTime: STALE.REFERENCE,
     queryFn: async () => {
       const [kinds, types, subtypes] = await Promise.all([
         supabase.from("node_kinds").select("id,code,name"),

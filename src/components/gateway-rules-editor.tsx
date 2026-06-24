@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { STALE } from "@/lib/query-keys";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -29,10 +30,11 @@ const scopeKey = (s: VarsScope | null) => s ? [s.clientId, s.environment, s.enti
 function useProcessVariables(scope: VarsScope | null) {
   return useQuery({
     queryKey: ["process-variables", ...scopeKey(scope)],
+    staleTime: STALE.REFERENCE,
     enabled: scopeReady(scope),
     queryFn: async () => {
       let q = supabase
-        .from("process_variables").select("*")
+        .from("process_variables").select("id, name, label, var_type, entity_id")
         .eq("client_id", scope!.clientId!)
         .eq("environment", scope!.environment);
       q = scope!.entityId ? q.eq("entity_id", scope!.entityId) : q.is("entity_id", null);

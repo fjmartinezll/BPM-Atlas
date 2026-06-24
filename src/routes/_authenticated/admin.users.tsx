@@ -6,10 +6,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth, type AppRole } from "@/lib/auth-context";
 import { useClient } from "@/lib/client-context";
 import { notifyUserRolesChanged } from "@/lib/notifications.functions";
+import { STALE } from "@/lib/query-keys";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/lib/error-capture";
 
 const ROLE_DESCRIPTIONS: Record<AppRole, string> = {
   administrador: "Acceso total al sistema. Gestiona usuarios, roles, taxonomías y toda la configuración.",
@@ -33,6 +35,7 @@ function AdminUsers() {
 
   const { data, isLoading } = useQuery({
     queryKey: ["admin-users", currentClientId],
+    staleTime: STALE.REFERENCE,
     enabled: isAdmin && !!currentClientId,
     queryFn: async () => {
       const { data: members } = await supabase
@@ -72,7 +75,7 @@ function AdminUsers() {
     }
     qc.invalidateQueries({ queryKey: ["admin-users"] });
     void notify({ data: { userId, changeSummary: has ? "retirar uno de tus roles" : "asignarte un nuevo rol" } })
-      .catch(() => {});
+      .catch((err) => console.warn("Operation failed:", getErrorMessage(err)));
   };
 
   return (

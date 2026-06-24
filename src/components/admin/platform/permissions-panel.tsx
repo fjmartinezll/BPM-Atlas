@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { STALE } from "@/lib/query-keys";
 import { supabase } from "@/integrations/supabase/client";
 import { type AppRole } from "@/lib/auth-context";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -105,6 +106,7 @@ function PolicyRows({ row }: { row: PolicyRow }) {
 export function PlatformPermissionsPanel() {
   const { data } = useQuery({
     queryKey: ["platform-roles-distribution"],
+    staleTime: STALE.REFERENCE,
     queryFn: async () => {
       const { data: roles } = await supabase.from("user_roles").select("user_id,role");
       const count: Record<AppRole, number> = { administrador: 0, dueno_proceso: 0, participante: 0, auditor: 0 };
