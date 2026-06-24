@@ -1,0 +1,2 @@
+ALTER TABLE public.process_diagrams ADD COLUMN IF NOT EXISTS entity_id uuid REFERENCES public.entities(id) ON DELETE SET NULL;
+CREATE INDEX IF NOT EXISTS process_diagrams_entity_id_idx ON public.process_diagrams(entity_id);

@@ -1,0 +1,16 @@
+ALTER TABLE public.macroprocesses        ADD COLUMN "NombreDeTabla" text DEFAULT 'macroprocesses';
+ALTER TABLE public.process_types         ADD COLUMN "NombreDeTabla" text DEFAULT 'process_types';
+ALTER TABLE public.processes             ADD COLUMN "NombreDeTabla" text DEFAULT 'processes';
+ALTER TABLE public.subprocesses          ADD COLUMN "NombreDeTabla" text DEFAULT 'subprocesses';
+ALTER TABLE public.task_types            ADD COLUMN "NombreDeTabla" text DEFAULT 'task_types';
+ALTER TABLE public.tasks                 ADD COLUMN "NombreDeTabla" text DEFAULT 'tasks';
+ALTER TABLE public.executable_elements   ADD COLUMN "NombreDeTabla" text DEFAULT 'executable_elements';
+ALTER TABLE public.entities              ADD COLUMN "NombreDeTabla" text DEFAULT 'entities';
+ALTER TABLE public.entity_process_links  ADD COLUMN "NombreDeTabla" text DEFAULT 'entity_process_links';
+ALTER TABLE public.process_diagrams      ADD COLUMN "NombreDeTabla" text DEFAULT 'process_diagrams';
+ALTER TABLE public.process_indicators    ADD COLUMN "NombreDeTabla" text DEFAULT 'process_indicators';
+ALTER TABLE public.process_risks         ADD COLUMN "NombreDeTabla" text DEFAULT 'process_risks';
+ALTER TABLE public.process_documents     ADD COLUMN "NombreDeTabla" text DEFAULT 'process_documents';
+ALTER TABLE public.profiles              ADD COLUMN "NombreDeTabla" text DEFAULT 'profiles';
+ALTER TABLE public.user_roles            ADD COLUMN "NombreDeTabla" text DEFAULT 'user_roles';
+ALTER TABLE public.change_log            ADD COLUMN "NombreDeTabla" text DEFAULT 'change_log';

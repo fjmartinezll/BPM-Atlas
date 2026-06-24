@@ -1,0 +1,1 @@
+ALTER TABLE public.entity_field_catalog ADD COLUMN IF NOT EXISTS sort_order integer NOT NULL DEFAULT 0;
