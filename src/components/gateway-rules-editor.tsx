@@ -52,6 +52,7 @@ function OperandPicker({
   onChange: (v: RuleOperand) => void;
   vars: ProcessVariable[];
 }) {
+  const { t } = useTranslation();
   const v = value ?? { kind: "literal" as const, value: "" };
   const kind = v.kind;
   const selectedVar = kind !== "literal" ? vars.find((x) => x.name === (v as any).name) : null;
@@ -67,9 +68,9 @@ function OperandPicker({
           else onChange({ kind: "attr", name: vars.find((x) => x.var_type === "entity")?.name ?? "", path: ENTITY_ATTRS[0] });
         }}
       >
-        <option value="literal">valor</option>
-        <option value="var" disabled={vars.length === 0}>variable</option>
-        <option value="attr" disabled={!vars.some((x) => x.var_type === "entity")}>atributo</option>
+        <option value="literal">{t("gatewayRules.operandLiteral")}</option>
+        <option value="var" disabled={vars.length === 0}>{t("gatewayRules.operandVar")}</option>
+        <option value="attr" disabled={!vars.some((x) => x.var_type === "entity")}>{t("gatewayRules.operandAttr")}</option>
       </select>
       {kind === "literal" && (
         <Input className="h-7 flex-1 text-sm" value={String((v as any).value ?? "")}
@@ -105,6 +106,7 @@ export function GatewayRulesEditor({
   setRules: (next: GatewayRule[]) => void;
   scope: VarsScope | null;
 }) {
+  const { t } = useTranslation();
   const varsQ = useProcessVariables(scope);
   const vars = varsQ.data ?? [];
   const migrated = rules.map(migrateGatewayRule);
@@ -113,37 +115,37 @@ export function GatewayRulesEditor({
     <div className="space-y-2">
       <div className="flex items-center justify-between">
         <label className="block text-xs font-medium uppercase tracking-wider text-muted-foreground">
-          Reglas de decisión
+          {t("gatewayRules.decisionRules")}
         </label>
         <Button size="sm" variant="outline" className="h-7 px-2 text-sm"
           disabled={migrated.length >= 2}
           onClick={() => {
             if (migrated.length >= 2) return;
-            setRules([...migrated, { left: { kind: "literal", value: "" }, op: "=", right: { kind: "literal", value: "" } }]);
+            setRules([...migrated, { left: { kind: "literal" as const, value: "" }, op: "=", right: { kind: "literal" as const, value: "" } }]);
           }}>
-          <Plus className="h-3 w-3 mr-1" /> Añadir
+          <Plus className="h-3 w-3 mr-1" /> {t("gatewayRules.addRule")}
         </Button>
       </div>
       {migrated.length === 0 && (
         <p className="text-xs italic text-muted-foreground">
-          If [variable / atributo / valor] [comparación] [variable / atributo / valor] → Verdadero o Falso.
+          {t("gatewayRules.ruleHint")}
         </p>
       )}
       {migrated.map((r, idx) => (
         <div key={idx} className="space-y-1 rounded border bg-background/60 p-1.5">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold uppercase text-muted-foreground">
-              {idx === 0 ? "If" : (
+              {idx === 0 ? t("gatewayRules.ifLabel") : (
                 <select value={r.connector ?? "Y"}
                   onChange={(e) => setRules(migrated.map((x, i) => i === idx ? { ...x, connector: e.target.value as "Y" | "O" } : x))}
                   className="h-5 rounded border bg-muted px-1 text-xs font-semibold uppercase">
                   <option value="Y">Y</option>
                   <option value="O">O</option>
                 </select>
-              )} regla {idx + 1}
+              )} {t("gatewayRules.ruleLabel")} {idx + 1}
             </span>
             <button type="button" onClick={() => setRules(migrated.filter((_, i) => i !== idx))}
-              className="rounded p-0.5 text-muted-foreground hover:bg-muted hover:text-destructive" title="Eliminar regla">
+              className="rounded p-0.5 text-muted-foreground hover:bg-muted hover:text-destructive" title={t("gatewayRules.deleteRuleTitle")}>
               <Trash2 className="h-3 w-3" />
             </button>
           </div>
@@ -163,7 +165,7 @@ export function GatewayRulesEditor({
         </div>
       ))}
       {!scopeReady(scope) && (
-        <p className="text-xs text-amber-600">Selecciona un cliente para declarar variables.</p>
+        <p className="text-xs text-amber-600">{t("gatewayRules.selectClientVars")}</p>
       )}
     </div>
   );
@@ -188,17 +190,18 @@ export function TaskIOEditor({
   inputMeta?: Record<string, InputMeta>;
   setInputMeta?: (m: Record<string, InputMeta>) => void;
 }) {
+  const { t } = useTranslation();
   const varsQ = useProcessVariables(scope);
   const vars = varsQ.data ?? [];
   return (
     <div className="rounded-md border bg-muted/30 p-2 space-y-3">
       <label className="block text-xs font-medium uppercase tracking-wider text-muted-foreground">
-        {title ?? "Variables de la tarea"}
+        {title ?? t("gatewayRules.taskVars")}
       </label>
       {!hideInputs && (
         <>
           <VarColumn
-            title="Entradas" subtitle="lo que consume"
+            title={t("gatewayRules.inputs")} subtitle={t("gatewayRules.inputsSub")}
             colorClass="border-sky-300 bg-sky-50 text-sky-800 dark:bg-sky-950/40 dark:text-sky-200"
             selected={inputs} setSelected={(next) => {
               setInputs(next);
@@ -221,13 +224,13 @@ export function TaskIOEditor({
       )}
       {!hideOutputs && (
         <VarColumn
-          title={outputsTitle ?? "Salidas"} subtitle={outputsSubtitle ?? "lo que produce"}
+          title={outputsTitle ?? t("gatewayRules.outputs")} subtitle={outputsSubtitle ?? t("gatewayRules.outputsSub")}
           colorClass={outputsColorClass ?? "border-emerald-300 bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200"}
           selected={outputs} setSelected={setOutputs} vars={vars} scope={scope}
         />
       )}
       {!scopeReady(scope) && (
-        <p className="text-xs text-amber-600">Selecciona un cliente para crear variables.</p>
+        <p className="text-xs text-amber-600">{t("gatewayRules.selectClientCreate")}</p>
       )}
     </div>
   );
@@ -255,9 +258,9 @@ function InputMetaEditor({
   return (
     <div className="rounded border border-dashed bg-background/50 p-1.5 space-y-1">
       <div className="grid grid-cols-12 gap-1 px-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
-        <span className="col-span-4">Entrada</span>
-        <span className="col-span-2 text-center">Requerida</span>
-        <span className="col-span-6">Valor por defecto</span>
+        <span className="col-span-4">{t("gatewayRules.colInput")}</span>
+        <span className="col-span-2 text-center">{t("gatewayRules.colRequired")}</span>
+        <span className="col-span-6">{t("gatewayRules.colDefault")}</span>
       </div>
       {inputs.map((name) => {
         const v = byName.get(name);
@@ -285,7 +288,7 @@ function InputMetaEditor({
             ) : (
               <Input className="col-span-6 h-7"
                 type={type === "integer" || type === "numeric" ? "number" : type === "date" ? "date" : "text"}
-                placeholder="(sin valor por defecto)"
+                placeholder={t("gatewayRules.noDefault")}
                 value={dvStr}
                 onChange={(e) => {
                   const raw = e.target.value;
@@ -331,14 +334,14 @@ function VarColumn({
               type="button"
               className="ml-0.5 rounded-full p-0.5 hover:bg-black/10 dark:hover:bg-white/10"
               onClick={() => setSelected(selected.filter((n) => n !== v.name))}
-              aria-label={`Quitar ${v.name}`}
+              aria-label={t("gatewayRules.removeVar", { name: v.name })}
             >
               <X className="h-2.5 w-2.5" />
             </button>
           </span>
         ))}
         {chosen.length === 0 && (
-          <span className="text-xs italic text-muted-foreground">Sin {title.toLowerCase()}</span>
+          <span className="text-xs italic text-muted-foreground">{t("gatewayRules.noVars", { name: title.toLowerCase() })}</span>
         )}
         <AddVarPopover
           vars={vars}
@@ -397,9 +400,9 @@ function AddVarPopover({
 
   const create = async () => {
     if (!ready) return;
-    const name = form.name.trim();
-    if (!name) { toast.error("Indica un nombre"); return; }
-    if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name)) { toast.error("Nombre inválido (usa letras, números y _)"); return; }
+          const name = form.name.trim();
+    if (!name) { toast.error(t("gatewayRules.nameRequired")); return; }
+    if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name)) { toast.error(t("gatewayRules.invalidName")); return; }
     setSaving(true);
     const { error } = await supabase.from("process_variables").insert({
       client_id: scope!.clientId,
@@ -413,7 +416,7 @@ function AddVarPopover({
     });
     setSaving(false);
     if (error) { toast.error(error.message); return; }
-    toast.success("Variable creada");
+    toast.success(t("gatewayRules.varCreated"));
     await qc.invalidateQueries({ queryKey: ["process-variables"] });
     onCreated(name);
     setOpen(false); reset();
@@ -426,7 +429,7 @@ function AddVarPopover({
           type="button"
           className="inline-flex items-center gap-1 rounded-full border border-dashed px-2 py-0.5 text-xs text-muted-foreground hover:bg-accent hover:text-foreground"
         >
-          <Plus className="h-2.5 w-2.5" /> Añadir
+          <Plus className="h-2.5 w-2.5" /> {t("gatewayRules.addVar")}
         </button>
       </PopoverTrigger>
       <PopoverContent className="w-64 p-2" align="start">
@@ -434,14 +437,14 @@ function AddVarPopover({
           <div className="space-y-2">
             <Input
               autoFocus value={query} onChange={(e) => setQuery(e.target.value)}
-              placeholder="Buscar variable…" className="h-8 text-sm"
+              placeholder={t("gatewayRules.searchVar")} className="h-8 text-sm"
             />
             <div className="max-h-44 overflow-y-auto space-y-0.5">
               {filtered.length === 0 && (
                 <p className="px-1 py-2 text-sm italic text-muted-foreground">
                   {catalogEmpty
-                    ? "Aún no hay variables en el catálogo. Crea la primera."
-                    : "Sin coincidencias."}
+                    ? t("gatewayRules.noVarsCatalog")
+                    : t("gatewayRules.noMatches")}
                 </p>
               )}
               {filtered.map((v) => {
@@ -452,11 +455,11 @@ function AddVarPopover({
                     disabled={isSelected}
                     className="flex w-full items-center justify-between rounded px-2 py-1 text-left text-sm hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:bg-transparent"
                     onClick={() => { onPick(v.name); setOpen(false); reset(); }}
-                    title={isSelected ? "Ya añadida" : ""}
+                    title={isSelected ? t("gatewayRules.varAlreadyAdded") : ""}
                   >
                     <span className="truncate font-medium">{v.label || v.name}</span>
                     <span className="flex items-center gap-1 text-xs uppercase text-muted-foreground">
-                      {isSelected && <span className="rounded bg-muted px-1 py-0.5 text-[9px] normal-case tracking-normal">añadida</span>}
+                      {isSelected && <span className="rounded bg-muted px-1 py-0.5 text-[9px] normal-case tracking-normal">{t("gatewayRules.varAddedLabel")}</span>}
                       {t("var_type." + v.var_type, getVarTypeLabel(v.var_type))}
                     </span>
                   </button>
@@ -469,51 +472,51 @@ function AddVarPopover({
               disabled={!ready}
               onClick={() => setMode("create")}
             >
-              <Plus className="mr-1 h-3 w-3" /> Crear nueva variable
+              <Plus className="mr-1 h-3 w-3" /> {t("gatewayRules.createNewVar")}
             </Button>
             {!ready && (
-              <p className="text-xs text-amber-600">Selecciona un cliente para crear variables.</p>
+              <p className="text-xs text-amber-600">{t("gatewayRules.selectClientCreate")}</p>
             )}
           </div>
         ) : (
           <div className="space-y-2">
             <div>
-              <label className="text-xs uppercase text-muted-foreground">Nombre técnico</label>
+              <label className="text-xs uppercase text-muted-foreground">{t("gatewayRules.techName")}</label>
               <Input className="h-8 text-sm" autoFocus value={form.name}
-                onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="pedido_id" />
+                onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder={t("gatewayRules.techNamePh")} />
             </div>
             <div>
-              <label className="text-xs uppercase text-muted-foreground">Etiqueta</label>
+              <label className="text-xs uppercase text-muted-foreground">{t("gatewayRules.label")}</label>
               <Input className="h-8 text-sm" value={form.label}
-                onChange={(e) => setForm({ ...form, label: e.target.value })} placeholder="ID del pedido" />
+                onChange={(e) => setForm({ ...form, label: e.target.value })} placeholder={t("gatewayRules.labelPh")} />
             </div>
             <div>
-              <label className="text-xs uppercase text-muted-foreground">Tipo</label>
+              <label className="text-xs uppercase text-muted-foreground">{t("gatewayRules.type")}</label>
               <select
                 className="h-7 w-full rounded border bg-background px-1 text-xs"
                 value={form.var_type}
                 onChange={(e) => setForm({ ...form, var_type: e.target.value as VarType })}
               >
-                <option value="text">Texto</option>
-                <option value="integer">Entero</option>
-                <option value="numeric">Decimal</option>
-                <option value="boolean">Booleano</option>
-                <option value="date">Fecha</option>
-                <option value="timestamp">Fecha-hora</option>
-                <option value="uuid">UUID</option>
-                <option value="json">JSON</option>
-                <option value="entity">Entidad</option>
+                <option value="text">{t("gatewayRules.varTypeText")}</option>
+                <option value="integer">{t("gatewayRules.varTypeInteger")}</option>
+                <option value="numeric">{t("gatewayRules.varTypeNumeric")}</option>
+                <option value="boolean">{t("gatewayRules.varTypeBoolean")}</option>
+                <option value="date">{t("gatewayRules.varTypeDate")}</option>
+                <option value="timestamp">{t("gatewayRules.varTypeTimestamp")}</option>
+                <option value="uuid">{t("gatewayRules.varTypeUuid")}</option>
+                <option value="json">{t("gatewayRules.varTypeJson")}</option>
+                <option value="entity">{t("gatewayRules.varTypeEntity")}</option>
               </select>
             </div>
             <p className="text-[11px] text-muted-foreground">
-              La obligatoriedad y el valor por defecto se configuran después en el nodo de inicio (o donde se use la variable).
+              {t("gatewayRules.createHint")}
             </p>
             <div className="flex justify-end gap-1">
               <Button type="button" size="sm" variant="ghost" className="h-7 text-sm" onClick={() => setMode("pick")}>
-                Cancelar
+                {t("gatewayRules.cancel")}
               </Button>
               <Button type="button" size="sm" className="h-7 text-sm" disabled={saving} onClick={create}>
-                Crear y añadir
+                {t("gatewayRules.createAndAdd")}
               </Button>
             </div>
           </div>

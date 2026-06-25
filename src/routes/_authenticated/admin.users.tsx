@@ -15,7 +15,7 @@ import { getErrorMessage } from "@/lib/error-capture";
 
 const ROLE_DESCRIPTIONS: Record<AppRole, string> = {
   administrador: "Acceso total al sistema. Gestiona usuarios, roles, taxonomías y toda la configuración.",
-  dueno_proceso: "Diseñador de procesos. Puede crear y editar macroprocesos, procesos, subprocesos y tareas.",
+  dueno_proceso: "Diseñador de procesos. Puede crear y editar mapas de procesos, procesos, subprocesos y tareas.",
   participante: "Usuario operativo. Participa en la ejecución de instancias de procesos asignadas.",
   auditor: "Acceso de solo lectura para auditar procesos, instancias y trazabilidad.",
 };

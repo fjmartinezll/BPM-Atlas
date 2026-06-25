@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { STALE } from "@/lib/query-keys";
 import { supabase } from "@/integrations/supabase/client";
 import { type AppRole } from "@/lib/auth-context";
@@ -11,11 +12,20 @@ import {
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RTooltip, Legend } from "recharts";
 
 type RoleKey = AppRole;
-const ROLES: Record<RoleKey, { label: string; color: string }> = {
-  administrador: { label: "Administrador", color: "hsl(var(--primary))" },
-  dueno_proceso: { label: "Dueño de proceso", color: "hsl(160 70% 45%)" },
-  participante: { label: "Participante", color: "hsl(35 90% 55%)" },
-  auditor: { label: "Auditor", color: "hsl(280 60% 60%)" },
+const ROLES: Record<RoleKey, { labelKey: string; color: string }> = {
+  administrador: { labelKey: "adminPermissions.roleAdminLabel", color: "hsl(var(--primary))" },
+  dueno_proceso: { labelKey: "adminPermissions.roleOwnerLabel", color: "hsl(160 70% 45%)" },
+  participante: { labelKey: "adminPermissions.roleParticipantLabel", color: "hsl(35 90% 55%)" },
+  auditor: { labelKey: "adminPermissions.roleAuditorLabel", color: "hsl(280 60% 60%)" },
+};
+const areaLabel = (t: (k: string) => string, area: string) => {
+  const map: Record<string, string> = {
+    Modelado: t("adminPermissions.areaModelado"),
+    "Ejecución": t("adminPermissions.areaEjecucion"),
+    Catálogo: t("adminPermissions.areaCatalogo"),
+    Administración: t("adminPermissions.areaAdmin"),
+  };
+  return map[area] ?? area;
 };
 const ROLE_KEYS: RoleKey[] = ["administrador", "dueno_proceso", "participante", "auditor"];
 
@@ -32,7 +42,7 @@ type PolicyRow = {
 };
 const POLICY_ROWS: PolicyRow[] = [
   { table: "entities", label: "Entidades", area: "Modelado", read: BPM, write: EDITORS, policySql: "SELECT: has_any_bpm_role · ALL: can_edit_bpm" },
-  { table: "macroprocesses", label: "Macroprocesos", area: "Modelado", read: BPM, write: EDITORS, policySql: "has_any_bpm_role / can_edit_bpm" },
+  { table: "macroprocesses", label: "Mapas de Procesos", area: "Modelado", read: BPM, write: EDITORS, policySql: "has_any_bpm_role / can_edit_bpm" },
   { table: "processes", label: "Procesos", area: "Modelado", read: BPM, write: EDITORS, policySql: "has_any_bpm_role / can_edit_bpm" },
   { table: "subprocesses", label: "Subprocesos", area: "Modelado", read: BPM, write: EDITORS, policySql: "has_any_bpm_role / can_edit_bpm" },
   { table: "process_diagrams", label: "Diagramas de proceso", area: "Modelado", read: BPM, write: EDITORS, policySql: "has_any_bpm_role / can_edit_bpm" },
@@ -60,12 +70,12 @@ const AREA_ICON: Record<PolicyRow["area"], typeof Workflow> = {
   Modelado: GitBranch, Ejecución: Play, Catálogo: Workflow, Administración: Shield,
 };
 
-function PolicyRows({ row }: { row: PolicyRow }) {
+function PolicyRows({ row, t }: { row: PolicyRow; t: (k: string) => string }) {
   const ops: Array<{ op: Op; label: string; icon: any; roles: ReadonlyArray<RoleKey> }> = [
-    { op: "R", label: "Leer", icon: Eye, roles: row.read },
-    { op: "W", label: "Escribir", icon: Pencil, roles: row.write },
+    { op: "R", label: t("adminPermissions.readOp"), icon: Eye, roles: row.read },
+    { op: "W", label: t("adminPermissions.writeOp"), icon: Pencil, roles: row.write },
   ];
-  if (row.execute) ops.push({ op: "X", label: "Ejecutar", icon: Play, roles: row.execute });
+  if (row.execute) ops.push({ op: "X", label: t("adminPermissions.executeOp"), icon: Play, roles: row.execute });
   return (
     <>
       {ops.map((o, idx) => (
@@ -104,6 +114,7 @@ function PolicyRows({ row }: { row: PolicyRow }) {
 }
 
 export function PlatformPermissionsPanel() {
+  const { t } = useTranslation();
   const { data } = useQuery({
     queryKey: ["platform-roles-distribution"],
     staleTime: STALE.REFERENCE,
@@ -120,14 +131,14 @@ export function PlatformPermissionsPanel() {
       <div className="space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2"><Users className="h-4 w-4" /> Distribución de roles</CardTitle>
+            <CardTitle className="text-base flex items-center gap-2"><Users className="h-4 w-4" /> {t("adminPermissions.distributionTitle")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="h-56">
               <ResponsiveContainer>
                 <PieChart>
                   <Pie
-                    data={ROLE_KEYS.map((rk) => ({ name: ROLES[rk].label, value: data?.[rk] ?? 0, color: ROLES[rk].color }))}
+                    data={ROLE_KEYS.map((rk) => ({ name: t(ROLES[rk].labelKey), value: data?.[rk] ?? 0, color: ROLES[rk].color }))}
                     dataKey="value" nameKey="name" outerRadius={80} label
                   >
                     {ROLE_KEYS.map((rk) => <Cell key={rk} fill={ROLES[rk].color} />)}
@@ -150,27 +161,27 @@ export function PlatformPermissionsPanel() {
                   <span className="inline-grid place-items-center h-7 w-7 rounded-md text-white" style={{ background: AREA_COLOR[area] }}>
                     <Icon className="h-4 w-4" />
                   </span>
-                  {area}
-                  <Badge variant="outline" className="ml-1 text-[10px]">{rows.length} tablas</Badge>
+                  {areaLabel(t, area)}
+                  <Badge variant="outline" className="ml-1 text-[10px]">{t("adminPermissions.tablesCount", { count: rows.length })}</Badge>
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-0">
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
-                    <thead className="bg-muted/40 text-xs uppercase tracking-wider text-muted-foreground">
-                      <tr>
-                        <th className="text-left px-4 py-2">Recurso</th>
-                        <th className="px-2 py-2">Op.</th>
-                        {ROLE_KEYS.map((rk) => (
-                          <th key={rk} className="text-center px-2 py-2" style={{ color: ROLES[rk].color }}>
-                            {ROLES[rk].label.split(" ")[0]}
-                          </th>
-                        ))}
-                        <th className="text-left px-4 py-2">Política</th>
-                      </tr>
-                    </thead>
+                      <thead className="bg-muted/40 text-xs uppercase tracking-wider text-muted-foreground">
+                        <tr>
+                          <th className="text-left px-4 py-2">{t("adminPermissions.colResource")}</th>
+                          <th className="px-2 py-2">{t("adminPermissions.colOp")}</th>
+                          {ROLE_KEYS.map((rk) => (
+                            <th key={rk} className="text-center px-2 py-2" style={{ color: ROLES[rk].color }}>
+                              {t(ROLES[rk].labelKey).split(" ")[0]}
+                            </th>
+                          ))}
+                          <th className="text-left px-4 py-2">{t("adminPermissions.colPolicy")}</th>
+                        </tr>
+                      </thead>
                     <tbody className="divide-y">
-                      {rows.map((row) => <PolicyRows key={row.table} row={row} />)}
+                      {rows.map((row) => <PolicyRows key={row.table} row={row} t={t} />)}
                     </tbody>
                   </table>
                 </div>

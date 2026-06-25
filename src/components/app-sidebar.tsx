@@ -21,7 +21,7 @@ export function AppSidebar() {
 
   const items = [
     { to: "/modeler", label: t("nav.modeler"), icon: GitBranch },
-    { to: "/engine", label: "Motor de procesos", icon: Cog },
+    { to: "/engine", label: t("nav.engine"), icon: Cog },
     { to: "/modeler", label: t("modeler.dbTitle"), icon: Database, search: { type: "datos" } as Record<string, string> },
     { to: "/ai-suggest", label: t("nav.aiSuggest"), icon: Sparkles },
     { to: "/encyclopedia", label: t("nav.encyclopedia"), icon: BookOpen },
@@ -30,46 +30,46 @@ export function AppSidebar() {
   type AdminItem = { to: string; label: string; icon: any; tab?: string };
   const adminGroups: { label: string; items: AdminItem[] }[] = [
     {
-      label: "Tenant activo",
+      label: t("sidebar.adminGroup.tenantActive"),
       items: [
-        { to: "/admin", tab: "general", label: "General", icon: Building2 },
-        { to: "/admin", tab: "members", label: "Miembros y roles", icon: Users },
-        { to: "/admin", tab: "autojoin", label: "Auto-unión", icon: Globe },
-        { to: "/admin", tab: "invites", label: "Invitaciones", icon: Mail },
-        { to: "/admin", tab: "requests", label: "Solicitudes", icon: UserCheck },
+        { to: "/admin", tab: "general", label: t("sidebar.general"), icon: Building2 },
+        { to: "/admin", tab: "members", label: t("sidebar.members"), icon: Users },
+        { to: "/admin", tab: "autojoin", label: t("sidebar.autojoin"), icon: Globe },
+        { to: "/admin", tab: "invites", label: t("sidebar.invites"), icon: Mail },
+        { to: "/admin", tab: "requests", label: t("sidebar.requests"), icon: UserCheck },
       ],
     },
     {
-      label: "Plataforma",
+      label: t("sidebar.adminGroup.platform"),
       items: [
-        { to: "/admin", tab: "permissions", label: "Permisos", icon: KeyRound },
+        { to: "/admin", tab: "permissions", label: t("sidebar.permissions"), icon: KeyRound },
         { to: "/admin", tab: "entities", label: t("nav.entities"), icon: Building2 },
-        { to: "/admin", tab: "modeling", label: "Permisos de Modelado", icon: GitBranch },
-        { to: "/admin", tab: "execution", label: "Ejecución", icon: Cog },
-        { to: "/admin", tab: "audit", label: "Auditoría", icon: History },
+        { to: "/admin", tab: "modeling", label: t("sidebar.modeling"), icon: GitBranch },
+        { to: "/admin", tab: "execution", label: t("sidebar.execution"), icon: Cog },
+        { to: "/admin", tab: "audit", label: t("sidebar.audit"), icon: History },
       ],
     },
     {
-      label: "Modelo organizativo",
+      label: t("sidebar.adminGroup.orgModel"),
       items: [
         { to: "/entities", label: t("nav.entities"), icon: Building2 },
-        { to: "/admin/entities-er", label: "Modelo ER de entidades", icon: Network },
+        { to: "/admin/entities-er", label: t("sidebar.entityEr"), icon: Network },
       ],
     },
     {
-      label: "Catálogos BPM",
+      label: t("sidebar.adminGroup.bpmCatalogs"),
       items: [
-        { to: "/admin/node-taxonomy", label: "Tipología de nodos", icon: Workflow },
-        { to: "/node-er", label: "ER de nodos", icon: Network },
+        { to: "/admin/node-taxonomy", label: t("sidebar.nodeTaxonomy"), icon: Workflow },
+        { to: "/node-er", label: t("sidebar.nodeEr"), icon: Network },
       ],
     },
     {
-      label: "Integraciones",
-      items: [{ to: "/webhooks", label: "Webhooks", icon: Webhook }],
+      label: t("sidebar.adminGroup.integrations"),
+      items: [{ to: "/webhooks", label: t("sidebar.webhooks"), icon: Webhook }],
     },
     {
-      label: "Base de datos",
-      items: [{ to: "/database", label: "Base de datos", icon: Database }],
+      label: t("sidebar.adminGroup.database"),
+      items: [{ to: "/database", label: t("sidebar.database"), icon: Database }],
     },
   ];
 
@@ -101,8 +101,8 @@ export function AppSidebar() {
               {items.map((it) => (
                 <SidebarMenuItem key={it.to + it.label}>
                   <SidebarMenuButton asChild isActive={isActive(it.to)}>
-                    {it.to === "/engine" ? (
-                      <Link to="/engine" search={{}}>
+                    {it.to === "/engine" || it.to === "/modeler" ? (
+                      <Link to={it.to} search={it.search ?? {}}>
                         <it.icon className="h-4 w-4" />
                         <span>{it.label}</span>
                       </Link>
@@ -132,7 +132,7 @@ export function AppSidebar() {
                     <CollapsibleTrigger asChild>
                       <SidebarMenuButton>
                         <Shield className="h-4 w-4" />
-                        <span>Administración</span>
+                        <span>{t("sidebar.admin")}</span>
                         <ChevronDown className="ml-auto h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-180" />
                       </SidebarMenuButton>
                     </CollapsibleTrigger>

@@ -5,6 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, Bot, User } from "lucide-react";
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,41 +37,18 @@ function isSystem(name: string) {
   return n.includes("sistema") || n.includes("automá") || n.includes("servicio") || n.includes("system");
 }
 function ModeBadge({ name }: { name: string }) {
+  const { t } = useTranslation();
   const system = isSystem(name);
   return (
     <Badge variant={system ? "secondary" : "outline"} className="h-4 text-[9px] px-1 gap-0.5">
       {system ? <Bot className="h-3 w-3" /> : <User className="h-3 w-3" />}
-      {system ? "Sistema" : "Humana"}
+      {system ? t("adminTaxonomy.system") : t("adminTaxonomy.human")}
     </Badge>
   );
 }
 
-function kindDescription(code: string): string {
-  switch (code) {
-    case "task":
-      return "Puede ser Humana o de Sistema. Depende del nombre: si contiene 'sistema', 'automática', 'servicio' o 'system' → Sistema. Cualquier otro → Humana.";
-    case "subprocess":
-      return "Siempre de Sistema. Lanza una instancia de subproceso de forma automática.";
-    case "start":
-    case "startEvent":
-      return "Evento de inicio. No tiene ejecución asignable ni automática; solo inicia el flujo.";
-    case "end":
-    case "endEvent":
-      return "Evento de fin. No tiene ejecución asignable; finaliza el flujo.";
-    case "gateway":
-      return "Siempre de Sistema. Evalúa reglas de negocio y dirige el flujo automáticamente.";
-    case "intermediate":
-    case "intermediateEvent":
-      return "Evento intermedio. Receptor o emisor de señales; no genera tareas.";
-    case "pool":
-    case "lane":
-      return "Contenedor organizacional. No ejecuta tareas.";
-    default:
-      return "Comportamiento determinado por el motor según el tipo.";
-  }
-}
-
 function NodeTaxonomyPage() {
+  const { t } = useTranslation();
   const { isAdmin } = useAuth();
   const qc = useQueryClient();
   const list = useServerFn(listTaxonomy);
@@ -91,10 +69,27 @@ function NodeTaxonomyPage() {
   const [subDialog, setSubDialog] = useState<{ open: boolean; typeId: string; row?: Subtype } | null>(null);
   const [confirm, setConfirm] = useState<{ kind: "type" | "sub"; id: string } | null>(null);
 
+  const kindDescription = (code: string) => {
+    const keyMap: Record<string, string> = {
+      task: "kindDescTask",
+      subprocess: "kindDescSubprocess",
+      start: "kindDescStart",
+      startEvent: "kindDescStart",
+      end: "kindDescEnd",
+      endEvent: "kindDescEnd",
+      gateway: "kindDescGateway",
+      intermediate: "kindDescIntermediate",
+      intermediateEvent: "kindDescIntermediate",
+      pool: "kindDescPool",
+      lane: "kindDescPool",
+    };
+    return t(`adminTaxonomy.${keyMap[code] ?? "kindDescDefault"}`);
+  };
+
   if (!isAdmin) {
-    return <div className="p-4 text-sm text-muted-foreground">Acceso restringido a administradores.</div>;
+    return <div className="p-4 text-sm text-muted-foreground">{t("adminTaxonomy.restrictedAccess")}</div>;
   }
-  if (isLoading || !data) return <div className="p-4 text-sm text-muted-foreground">Cargando…</div>;
+  if (isLoading || !data) return <div className="p-4 text-sm text-muted-foreground">{t("adminTaxonomy.loading")}</div>;
 
   const cats = data.categories as Cat[];
   const kinds = data.kinds as Kind[];
@@ -114,7 +109,7 @@ function NodeTaxonomyPage() {
         toast.error(result.message);
         return;
       }
-      toast.success("Tipo guardado");
+      toast.success(t("adminTaxonomy.typeSaved"));
       setTypeDialog({ open: false });
       refresh();
     } catch (e) { toast.error((e as Error).message); }
@@ -127,7 +122,7 @@ function NodeTaxonomyPage() {
         toast.error(result.message);
         return;
       }
-      toast.success("Subtipo guardado");
+      toast.success(t("adminTaxonomy.subtypeSaved"));
       setSubDialog(null);
       refresh();
     } catch (e) { toast.error((e as Error).message); }
@@ -137,7 +132,7 @@ function NodeTaxonomyPage() {
     try {
       if (confirm.kind === "type") await delType({ data: { id: confirm.id } });
       else await delSub({ data: { id: confirm.id } });
-      toast.success("Eliminado");
+      toast.success(t("adminTaxonomy.deleted"));
       setConfirm(null);
       refresh();
     } catch (e) { toast.error((e as Error).message); }
@@ -147,8 +142,8 @@ function NodeTaxonomyPage() {
     <div className="flex h-full">
       <aside className="w-56 shrink-0 border-r bg-card/30">
         <div className="border-b px-3 py-2">
-          <h1 className="text-sm font-semibold">Tipología de nodos</h1>
-          <p className="text-[10px] text-muted-foreground leading-tight">Tipos y subtipos por nodo</p>
+          <h1 className="text-sm font-semibold">{t("adminTaxonomy.title")}</h1>
+          <p className="text-[10px] text-muted-foreground leading-tight">{t("adminTaxonomy.subtitle")}</p>
         </div>
         <TooltipProvider delayDuration={100}>
           <nav className="space-y-2 p-2">
@@ -194,21 +189,21 @@ function NodeTaxonomyPage() {
             <div className="mb-2 flex items-center justify-between">
               <div>
                 <h2 className="text-sm font-semibold">{currentKind.name}</h2>
-                <p className="text-[10px] text-muted-foreground">Tipos y subtipos disponibles</p>
+                <p className="text-[10px] text-muted-foreground">{t("adminTaxonomy.typesAndSubtypes")}</p>
               </div>
               <Button size="sm" className="h-7 text-xs px-2" onClick={() => setTypeDialog({ open: true })}>
-                <Plus className="mr-1 h-3 w-3" /> Nuevo tipo
+                <Plus className="mr-1 h-3 w-3" /> {t("adminTaxonomy.newType")}
               </Button>
             </div>
             {currentKind.code === "task" && (
               <div className="mb-2 rounded border border-dashed bg-muted/30 px-2 py-2 text-[10px] text-muted-foreground flex items-start gap-2">
                 <div className="mt-0.5 shrink-0"><Bot className="h-3.5 w-3.5 text-muted-foreground" /></div>
                 <div>
-                  <span className="font-semibold text-foreground">Ejecución automática vs. asignable</span>
+                  <span className="font-semibold text-foreground">{t("adminTaxonomy.autoVsAssignable")}</span>
                   <div className="mt-0.5">
-                    Si el nombre contiene <span className="font-medium text-foreground">sistema / automática / servicio / system</span>,
-                    la tarea se ejecuta sola (<ModeBadge name="Sistema" />).
-                    Cualquier otro nombre crea una tarea en la Bandeja para un usuario (<ModeBadge name="Humana" />).
+                    {t("adminTaxonomy.infoDesc1")} <span className="font-medium text-foreground">{t("adminTaxonomy.infoDescKeywords")}</span>
+                    {t("adminTaxonomy.infoDesc2")} (<ModeBadge name={t("adminTaxonomy.system")} />).
+                    {t("adminTaxonomy.infoDesc3")} (<ModeBadge name={t("adminTaxonomy.human")} />).
                   </div>
                 </div>
               </div>
@@ -218,54 +213,54 @@ function NodeTaxonomyPage() {
             <div className="space-y-1.5">
               {kindTypes.length === 0 && (
                 <div className="rounded border border-dashed p-3 text-center text-xs text-muted-foreground">
-                  Aún no hay tipos para este nodo.
+                  {t("adminTaxonomy.noTypes")}
                 </div>
               )}
-              {kindTypes.map((t) => {
-                const subs = subtypes.filter((s) => s.type_id === t.id);
+              {kindTypes.map((type) => {
+                const subs = subtypes.filter((s) => s.type_id === type.id);
                 return (
-                  <div key={t.id} className="rounded border bg-card">
+                  <div key={type.id} className="rounded border bg-card">
                     {/* Type header */}
                     <div className="flex items-center justify-between gap-2 border-b bg-muted/30 px-2 py-1.5">
                       <div className="min-w-0 flex items-center gap-1.5">
-                        <Badge variant="default" className="text-[9px] uppercase tracking-wider h-4 px-1">Tipo</Badge>
-                        <span className="text-xs font-semibold truncate">{t.name}</span>
-                        {currentKind.code === "task" && <ModeBadge name={t.name} />}
+                        <Badge variant="default" className="text-[9px] uppercase tracking-wider h-4 px-1">{t("adminTaxonomy.typeBadge")}</Badge>
+                        <span className="text-xs font-semibold truncate">{type.name}</span>
+                        {currentKind.code === "task" && <ModeBadge name={type.name} />}
                       </div>
                       <div className="flex gap-0.5 shrink-0">
-                        <Button size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => setTypeDialog({ open: true, row: t })}>
+                        <Button size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => setTypeDialog({ open: true, row: type })}>
                           <Pencil className="h-3 w-3" />
                         </Button>
-                        <Button size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => setConfirm({ kind: "type", id: t.id })}>
+                        <Button size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => setConfirm({ kind: "type", id: type.id })}>
                           <Trash2 className="h-3 w-3" />
                         </Button>
-                        <Button size="sm" variant="outline" className="h-6 text-[10px] px-1.5" onClick={() => setSubDialog({ open: true, typeId: t.id })}>
+                        <Button size="sm" variant="outline" className="h-6 text-[10px] px-1.5" onClick={() => setSubDialog({ open: true, typeId: type.id })}>
                           <Plus className="mr-0.5 h-3 w-3" /> Sub
                         </Button>
                       </div>
                     </div>
-                    {t.description && (
-                      <div className="px-2 py-0.5 text-[10px] text-muted-foreground border-b">{t.description}</div>
+                    {type.description && (
+                      <div className="px-2 py-0.5 text-[10px] text-muted-foreground border-b">{type.description}</div>
                     )}
                     {/* Subtypes list */}
                     {subs.length > 0 && (
                       <div className="bg-background/50">
                         <div className="border-b px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">
-                          Subtipos ({subs.length})
+                          {t("adminTaxonomy.subtypesLabel", { count: subs.length })}
                         </div>
                         <ul className="divide-y">
                           {subs.map((s) => (
                             <li key={s.id} className="flex items-center justify-between gap-2 px-2 py-1">
                               <div className="min-w-0 flex items-center gap-1.5">
-                                <Badge variant="outline" className="text-[9px] uppercase tracking-wider text-muted-foreground h-4 px-1 shrink-0">Sub</Badge>
+                                <Badge variant="outline" className="text-[9px] uppercase tracking-wider text-muted-foreground h-4 px-1 shrink-0">{t("adminTaxonomy.subBadge")}</Badge>
                                 <span className="text-xs truncate">{s.name}</span>
                                 {currentKind.code === "task" && <ModeBadge name={s.name} />}
                               </div>
                               <div className="flex gap-0.5 shrink-0">
-                                <Button size="sm" variant="ghost" className="h-5 w-5 p-0" onClick={() => setSubDialog({ open: true, typeId: t.id, row: s })} aria-label="Editar">
+                                <Button size="sm" variant="ghost" className="h-5 w-5 p-0" onClick={() => setSubDialog({ open: true, typeId: type.id, row: s })} aria-label={t("adminTaxonomy.editLabel")}>
                                   <Pencil className="h-3 w-3" />
                                 </Button>
-                                <Button size="sm" variant="ghost" className="h-5 w-5 p-0" onClick={() => setConfirm({ kind: "sub", id: s.id })} aria-label="Eliminar">
+                                <Button size="sm" variant="ghost" className="h-5 w-5 p-0" onClick={() => setConfirm({ kind: "sub", id: s.id })} aria-label={t("adminTaxonomy.deleteLabel")}>
                                   <Trash2 className="h-3 w-3" />
                                 </Button>
                               </div>
@@ -284,14 +279,14 @@ function NodeTaxonomyPage() {
 
       <EditDialog
         open={typeDialog.open}
-        title={typeDialog.row ? "Editar tipo" : "Nuevo tipo"}
+        title={typeDialog.row ? t("adminTaxonomy.editType") : t("adminTaxonomy.newType")}
         initial={typeDialog.row ? { name: typeDialog.row.name, description: typeDialog.row.description ?? "" } : undefined}
         onClose={() => setTypeDialog({ open: false })}
         onSave={saveType}
       />
       <EditDialog
         open={!!subDialog?.open}
-        title={subDialog?.row ? "Editar subtipo" : "Nuevo subtipo"}
+        title={subDialog?.row ? t("adminTaxonomy.editSubtype") : t("adminTaxonomy.newSubtype")}
         initial={subDialog?.row ? { name: subDialog.row.name, description: subDialog.row.description ?? "" } : undefined}
         onClose={() => setSubDialog(null)}
         onSave={saveSub}
@@ -299,12 +294,12 @@ function NodeTaxonomyPage() {
       <AlertDialog open={!!confirm} onOpenChange={(o) => !o && setConfirm(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>¿Eliminar?</AlertDialogTitle>
-            <AlertDialogDescription>Esta acción no se puede deshacer.</AlertDialogDescription>
+            <AlertDialogTitle>{t("adminTaxonomy.deleteTitle")}</AlertDialogTitle>
+            <AlertDialogDescription>{t("adminTaxonomy.cannotUndo")}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={doDelete}>Eliminar</AlertDialogAction>
+            <AlertDialogCancel>{t("adminTaxonomy.cancel")}</AlertDialogCancel>
+            <AlertDialogAction onClick={doDelete}>{t("adminTaxonomy.delete")}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -321,6 +316,7 @@ function EditDialog({
   onClose: () => void;
   onSave: (v: { name: string; description: string }) => void;
 }) {
+  const { t } = useTranslation();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
 
@@ -337,11 +333,11 @@ function EditDialog({
         <DialogHeader><DialogTitle>{title}</DialogTitle></DialogHeader>
         <div className="space-y-3">
           <div>
-            <label className="mb-1 block text-xs font-medium">Nombre</label>
+            <label className="mb-1 block text-xs font-medium">{t("adminTaxonomy.name")}</label>
             <Input value={name} onChange={(e) => setName(e.target.value)} maxLength={120} autoFocus />
           </div>
           <div>
-            <label className="mb-1 block text-xs font-medium">Descripción</label>
+            <label className="mb-1 block text-xs font-medium">{t("adminTaxonomy.description")}</label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -351,8 +347,8 @@ function EditDialog({
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Cancelar</Button>
-          <Button onClick={() => name.trim() && onSave({ name: name.trim(), description: description.trim() })}>Guardar</Button>
+          <Button variant="outline" onClick={onClose}>{t("adminTaxonomy.cancel")}</Button>
+          <Button onClick={() => name.trim() && onSave({ name: name.trim(), description: description.trim() })}>{t("adminTaxonomy.save")}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

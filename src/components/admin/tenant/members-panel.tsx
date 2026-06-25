@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { KeyRound, MailCheck, ShieldAlert, Trash2, Search } from "lucide-react";
 import {
@@ -26,14 +27,17 @@ import { useActiveTenant } from "./use-active-tenant";
 
 type AppRole = "administrador" | "dueno_proceso" | "participante" | "auditor";
 const ALL_ROLES: AppRole[] = ["administrador", "dueno_proceso", "participante", "auditor"];
-const ROLE_LABEL: Record<string, string> = {
-  administrador: "Administrador",
-  dueno_proceso: "Dueño de proceso",
-  participante: "Participante",
-  auditor: "Auditor",
+const roleLabel = (t: (k: string) => string, r: AppRole) => {
+  const map: Record<AppRole, string> = {
+    administrador: t("adminMembers.roleAdmin"),
+    dueno_proceso: t("adminMembers.roleProcessOwner"),
+    participante: t("adminMembers.roleParticipant"),
+    auditor: t("adminMembers.roleAuditor"),
+  };
+  return map[r];
 };
-
 export function TenantMembersPanel() {
+  const { t } = useTranslation();
   const { tenant } = useActiveTenant();
   const tenantId = tenant?.id;
   const qc = useQueryClient();
@@ -55,7 +59,7 @@ export function TenantMembersPanel() {
     mutationFn: (v: { userId: string; role: AppRole }) =>
       setRoleFn({ data: { clientId: tenantId!, userId: v.userId, role: v.role } }),
     onSuccess: () => {
-      toast.success("Rol actualizado");
+      toast.success(t("adminMembers.roleUpdated"));
       qc.invalidateQueries({ queryKey: ["tenant-members", tenantId] });
     },
     onError: (e: unknown) => toast.error(e instanceof Error ? e.message : "Error"),
@@ -64,7 +68,7 @@ export function TenantMembersPanel() {
   const removeMu = useMutation({
     mutationFn: (userId: string) => removeFn({ data: { clientId: tenantId!, userId } }),
     onSuccess: () => {
-      toast.success("Usuario expulsado");
+      toast.success(t("adminMembers.userRemoved"));
       qc.invalidateQueries({ queryKey: ["tenant-members", tenantId] });
     },
     onError: (e: unknown) => toast.error(e instanceof Error ? e.message : "Error"),
@@ -72,7 +76,7 @@ export function TenantMembersPanel() {
 
   const resetMu = useMutation({
     mutationFn: (userId: string) => resetFn({ data: { clientId: tenantId!, userId } }),
-    onSuccess: () => toast.success("Email de reseteo enviado"),
+    onSuccess: () => toast.success(t("adminMembers.resetSent")),
     onError: (e: unknown) => toast.error(e instanceof Error ? e.message : "Error"),
   });
 
@@ -80,12 +84,12 @@ export function TenantMembersPanel() {
     mutationFn: (userId: string) => verifyFn({ data: { clientId: tenantId!, userId } }),
     onSuccess: (res: any) =>
       res?.alreadyVerified
-        ? toast.info("El email ya está verificado")
-        : toast.success("Email de verificación enviado"),
+        ? toast.info(t("adminMembers.alreadyVerified"))
+        : toast.success(t("adminMembers.verificationSent")),
     onError: (e: unknown) => toast.error(e instanceof Error ? e.message : "Error"),
   });
 
-  if (!tenantId) return <div className="text-sm text-muted-foreground">Sin tenant asignado.</div>;
+  if (!tenantId) return <div className="text-sm text-muted-foreground">{t("adminMembers.noTenant")}</div>;
 
   const members: TenantMember[] = q.data ?? [];
 
@@ -120,9 +124,9 @@ export function TenantMembersPanel() {
       <CardHeader>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <CardTitle className="text-base">
-            Miembros del tenant
+            {t("adminMembers.title")}
             <span className="ml-2 text-xs font-normal text-muted-foreground">
-              {filtered.length} de {members.length}
+              {t("adminMembers.ofCount", { filtered: filtered.length, total: members.length })}
             </span>
           </CardTitle>
           <div className="flex flex-wrap items-center gap-2">
@@ -131,7 +135,7 @@ export function TenantMembersPanel() {
               <Input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Buscar por email o nombre…"
+                placeholder={t("adminMembers.searchPlaceholder")}
                 className="pl-8 h-9 w-64"
               />
             </div>
@@ -140,11 +144,11 @@ export function TenantMembersPanel() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todos los roles ({counts.all})</SelectItem>
-                <SelectItem value="none">Sin rol ({counts.none})</SelectItem>
+                <SelectItem value="all">{t("adminMembers.allRoles", { count: counts.all })}</SelectItem>
+                <SelectItem value="none">{t("adminMembers.noRoleFilter", { count: counts.none })}</SelectItem>
                 {ALL_ROLES.map((r) => (
                   <SelectItem key={r} value={r}>
-                    {ROLE_LABEL[r]} ({counts[r] ?? 0})
+                    {roleLabel(t, r)} ({counts[r] ?? 0})
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -154,14 +158,14 @@ export function TenantMembersPanel() {
       </CardHeader>
       <CardContent>
         <div className="space-y-2">
-          {q.isLoading && <div className="text-sm text-muted-foreground">Cargando…</div>}
+          {q.isLoading && <div className="text-sm text-muted-foreground">{t("common.loading")}</div>}
           {!q.isLoading && members.length === 0 && (
             <div className="text-sm text-muted-foreground">
-              Sin miembros aún. Invita a alguien desde la pestaña Invitaciones.
+              {t("adminMembers.noMembers")}
             </div>
           )}
           {!q.isLoading && members.length > 0 && filtered.length === 0 && (
-            <div className="text-sm text-muted-foreground">Sin resultados para los filtros actuales.</div>
+            <div className="text-sm text-muted-foreground">{t("adminMembers.noFilterResults")}</div>
           )}
           {filtered.map((m) => {
             const isSelf = m.user_id === user?.id;
@@ -170,7 +174,7 @@ export function TenantMembersPanel() {
                 <div className="min-w-0 flex-1">
                   <div className="text-sm font-medium truncate">
                     {m.full_name || m.email || m.user_id}
-                    {isSelf && <Badge variant="outline" className="ml-2 text-[10px]">tú</Badge>}
+                    {isSelf && <Badge variant="outline" className="ml-2 text-[10px]">{t("adminMembers.you")}</Badge>}
                   </div>
                   {m.email && <div className="text-xs text-muted-foreground truncate">{m.email}</div>}
                 </div>
@@ -182,39 +186,39 @@ export function TenantMembersPanel() {
                     disabled={setRoleMu.isPending}
                   >
                     <SelectTrigger className="h-8 w-44 text-xs">
-                      <SelectValue placeholder="Sin rol" />
+                      <SelectValue placeholder={t("adminMembers.selectNoRole")} />
                     </SelectTrigger>
                     <SelectContent>
-                      {ALL_ROLES.map((r) => <SelectItem key={r} value={r}>{ROLE_LABEL[r]}</SelectItem>)}
+                      {ALL_ROLES.map((r) => <SelectItem key={r} value={r}>{roleLabel(t, r)}</SelectItem>)}
                     </SelectContent>
                   </Select>
 
-                  <Button size="sm" variant="ghost" title="Enviar enlace de reseteo de contraseña"
+                  <Button size="sm" variant="ghost" title={t("adminMembers.resetPasswordTitle")}
                     onClick={() => resetMu.mutate(m.user_id)} disabled={resetMu.isPending || !m.email}>
                     <KeyRound className="h-3.5 w-3.5" />
                   </Button>
 
-                  <Button size="sm" variant="ghost" title="Reenviar verificación de email"
+                  <Button size="sm" variant="ghost" title={t("adminMembers.resendVerificationTitle")}
                     onClick={() => verifyMu.mutate(m.user_id)} disabled={verifyMu.isPending || !m.email}>
                     <MailCheck className="h-3.5 w-3.5" />
                   </Button>
 
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
-                      <Button size="sm" variant="ghost" title="Expulsar del tenant" disabled={removeMu.isPending || isSelf}>
+                      <Button size="sm" variant="ghost" title={t("adminMembers.removeTitleShort")} disabled={removeMu.isPending || isSelf}>
                         <Trash2 className="h-3.5 w-3.5 text-destructive" />
                       </Button>
                     </AlertDialogTrigger>
                     <AlertDialogContent>
                       <AlertDialogHeader>
-                        <AlertDialogTitle>Expulsar a {m.full_name || m.email}?</AlertDialogTitle>
+                        <AlertDialogTitle>{t("adminMembers.removeTitle", { name: m.full_name || m.email })}</AlertDialogTitle>
                         <AlertDialogDescription>
-                          Perderá acceso a todos los datos de este tenant. La cuenta de usuario seguirá existiendo.
+                          {t("adminMembers.removeDesc")}
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
-                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => removeMu.mutate(m.user_id)}>Expulsar</AlertDialogAction>
+                        <AlertDialogCancel>{t("actions.cancel")}</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => removeMu.mutate(m.user_id)}>{t("adminMembers.removeAction")}</AlertDialogAction>
                       </AlertDialogFooter>
                     </AlertDialogContent>
                   </AlertDialog>
@@ -226,8 +230,7 @@ export function TenantMembersPanel() {
           <div className="flex items-start gap-2 rounded-md border border-dashed p-3 text-xs text-muted-foreground">
             <ShieldAlert className="h-4 w-4 mt-0.5 shrink-0" />
             <div>
-              Por seguridad, no puedes ver ni fijar contraseñas de otros usuarios. Solo puedes enviarles un enlace de
-              reseteo a su email. Tampoco puedes cambiar su email: deben hacerlo ellos desde su perfil.
+              {t("adminMembers.securityNote")}
             </div>
           </div>
         </div>

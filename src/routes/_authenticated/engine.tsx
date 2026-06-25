@@ -82,6 +82,7 @@ function fmtDate(s?: string | null) {
 }
 
 function EngineScopeHeader() {
+  const { t } = useTranslation();
   const { currentClient, currentClientId, environment, setEnvironment } = useClient();
   const { entity, setEntity } = useSelectedEntity();
   const { isAdmin } = useAuth();
@@ -118,14 +119,14 @@ function EngineScopeHeader() {
   return (
     <div className="flex flex-wrap items-end gap-3 rounded-md border bg-card px-3 py-2">
       <div className="space-y-1">
-        <Label className="text-[10px] uppercase tracking-wider text-muted-foreground">Tenant</Label>
+        <Label className="text-[10px] uppercase tracking-wider text-muted-foreground">{t("engine.tenant")}</Label>
         <div className="flex h-8 items-center gap-1.5 rounded-md border bg-muted/40 px-2 text-xs font-medium min-w-[160px]">
           <Building2 className="h-3.5 w-3.5 text-primary" />
           <span className="truncate" title={currentClient?.name}>{currentClient?.name ?? "—"}</span>
         </div>
       </div>
       <div className="space-y-1">
-        <Label className="text-[10px] uppercase tracking-wider text-muted-foreground">Entidad</Label>
+        <Label className="text-[10px] uppercase tracking-wider text-muted-foreground">{t("engine.entity")}</Label>
         <Select
           value={entity?.id ?? ""}
           onValueChange={(v) => {
@@ -136,7 +137,7 @@ function EngineScopeHeader() {
           <SelectTrigger className="h-8 min-w-[200px] text-xs">
             <div className="flex items-center gap-1.5">
               <Box className="h-3.5 w-3.5 text-primary" />
-              <SelectValue placeholder="Selecciona entidad" />
+              <SelectValue placeholder={t("engine.selectEntity")} />
             </div>
           </SelectTrigger>
           <SelectContent>
@@ -148,7 +149,7 @@ function EngineScopeHeader() {
       </div>
       {isAdmin && (
         <div className="space-y-1">
-          <Label className="text-[10px] uppercase tracking-wider text-muted-foreground">Entorno</Label>
+          <Label className="text-[10px] uppercase tracking-wider text-muted-foreground">{t("engine.environment")}</Label>
           <div className="flex gap-1">
             <Button
               type="button" size="sm"
@@ -156,7 +157,7 @@ function EngineScopeHeader() {
               className="h-8 px-2 text-[11px]"
               onClick={() => environment !== "produccion" && setEnvironment("produccion")}
             >
-              <Rocket className="mr-1 h-3 w-3" /> Producción
+              <Rocket className="mr-1 h-3 w-3" /> {t("engine.production")}
             </Button>
             <Button
               type="button" size="sm"
@@ -164,7 +165,7 @@ function EngineScopeHeader() {
               className="h-8 px-2 text-[11px]"
               onClick={() => environment !== "pruebas" && setEnvironment("pruebas")}
             >
-              <FlaskConical className="mr-1 h-3 w-3" /> Pruebas
+              <FlaskConical className="mr-1 h-3 w-3" /> {t("engine.testing")}
             </Button>
           </div>
         </div>
@@ -174,6 +175,7 @@ function EngineScopeHeader() {
 }
 
 function EnginePage() {
+  const { t } = useTranslation();
   const { canEdit } = useAuth();
   const navigate = useNavigate();
   const { drafts: draftsFilter, tab } = Route.useSearch();
@@ -181,11 +183,11 @@ function EnginePage() {
   return (
     <div className="flex flex-col gap-4 p-6">
       <div>
-        <h1 className="text-2xl font-display font-semibold">Motor de procesos</h1>
+        <h1 className="text-2xl font-display font-semibold">{t("engine.title")}</h1>
         <p className="text-sm text-muted-foreground">
           {tabValue === "drafts"
-            ? "Borradores: plantillas con cambios guardados pendientes de iniciar."
-            : "Consola de mandos: publica diagramas, lanza instancias y supervisa la ejecución."}
+            ? t("engine.subtitleDrafts")
+            : t("engine.subtitle")}
         </p>
       </div>
 
@@ -195,15 +197,15 @@ function EnginePage() {
         value={tabValue}
         onValueChange={(v) => {
           if (v === "drafts") navigate({ to: "/engine", search: { drafts: true, tab: "drafts" } });
-          else if (v === "instances") navigate({ to: "/engine", search: { tab: "instances" } });
-          else navigate({ to: "/engine", search: {} });
+          else if (v === "instances") navigate({ to: "/engine", search: { drafts: undefined, tab: "instances" } });
+          else navigate({ to: "/engine", search: { drafts: undefined, tab: undefined } });
         }}
         className="w-full"
       >
         <TabsList>
-          <TabsTrigger value="definitions">Plantillas inmutables-de-Procesos</TabsTrigger>
-          <TabsTrigger value="instances">Ejecuciones-de-Instancias</TabsTrigger>
-          <TabsTrigger value="drafts">Borradores</TabsTrigger>
+          <TabsTrigger value="definitions">{t("engine.definitions")}</TabsTrigger>
+          <TabsTrigger value="instances">{t("engine.instances")}</TabsTrigger>
+          <TabsTrigger value="drafts">{t("engine.drafts")}</TabsTrigger>
         </TabsList>
         <TabsContent value="definitions" className="mt-4">
           <DefinitionsTab canEdit={canEdit} draftsOnly={false} />
@@ -221,6 +223,7 @@ function EnginePage() {
 
 // ----------------- DEFINITIONS TAB -----------------
 function DefinitionsTab({ canEdit, draftsOnly = false }: { canEdit: boolean; draftsOnly?: boolean }) {
+  const { t } = useTranslation();
   const qc = useQueryClient();
   const navigate = useNavigate();
   const listFn = useServerFn(listDefinitions);
@@ -240,13 +243,13 @@ function DefinitionsTab({ canEdit, draftsOnly = false }: { canEdit: boolean; dra
 
   const setStatusMut = useMutation({
     mutationFn: (input: { id: string; status: "active" | "inactive" | "archived" }) => setStatusFn({ data: input }),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["engine-defs"] }); toast.success("Estado actualizado"); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["engine-defs"] }); toast.success(t("engine.statusUpdated")); },
     onError: (e: Error) => toast.error(e.message),
   });
 
   const deleteMut = useMutation({
     mutationFn: (id: string) => deleteDefFn({ data: { id } }),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["engine-defs"] }); toast.success("Plantilla eliminada"); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["engine-defs"] }); toast.success(t("engine.templateDeleted")); },
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -256,7 +259,7 @@ function DefinitionsTab({ canEdit, draftsOnly = false }: { canEdit: boolean; dra
     onSuccess: (_r, vars) => {
       qc.invalidateQueries({ queryKey: ["engine-defs"] });
       qc.invalidateQueries({ queryKey: ["engine-instances"] });
-      toast.success("Instancia iniciada");
+      toast.success(t("engine.instanceStarted"));
       // borrar borrador silenciosamente
       deleteDraftFn({ data: { definitionId: vars.definitionId } })
         .then(() => {
@@ -271,7 +274,7 @@ function DefinitionsTab({ canEdit, draftsOnly = false }: { canEdit: boolean; dra
 
   const tickMut = useMutation({
     mutationFn: () => tickFn(),
-    onSuccess: (r: { fired: number }) => toast.success(`Timers disparados: ${r.fired}`),
+    onSuccess: (r: { fired: number }) => toast.success(t("engine.timersFired", { count: r.fired })),
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -279,10 +282,10 @@ function DefinitionsTab({ canEdit, draftsOnly = false }: { canEdit: boolean; dra
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <p className="text-xs text-muted-foreground">
-          {q.data?.length ?? 0} definiciones publicadas
+          {t("engine.defCount", { count: q.data?.length ?? 0 })}
           {draftsQ.data && draftsQ.data.length > 0 && (
             <span className="ml-2 inline-flex items-center gap-1 rounded-full bg-amber-500/15 px-2 py-0.5 text-amber-700 dark:text-amber-300">
-              <FileEdit className="h-3 w-3" /> {draftsQ.data.length} borrador{draftsQ.data.length === 1 ? "" : "es"}
+              <FileEdit className="h-3 w-3" /> {t("engine.draftCount", { count: draftsQ.data.length })}
             </span>
           )}
         </p>
@@ -291,11 +294,11 @@ function DefinitionsTab({ canEdit, draftsOnly = false }: { canEdit: boolean; dra
             qc.invalidateQueries({ queryKey: ["engine-defs"] });
             qc.invalidateQueries({ queryKey: ["engine-my-drafts"] });
           }}>
-            <RefreshCw className="mr-2 h-3.5 w-3.5" /> Recargar
+            <RefreshCw className="mr-2 h-3.5 w-3.5" /> {t("engine.refresh")}
           </Button>
           {canEdit && (
             <Button variant="outline" size="sm" onClick={() => tickMut.mutate()} disabled={tickMut.isPending}>
-              <Timer className="mr-2 h-3.5 w-3.5" /> Disparar timers
+              <Timer className="mr-2 h-3.5 w-3.5" /> {t("engine.fireTimers")}
             </Button>
           )}
         </div>
@@ -305,12 +308,12 @@ function DefinitionsTab({ canEdit, draftsOnly = false }: { canEdit: boolean; dra
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Nombre</TableHead>
-              <TableHead>Versión</TableHead>
-              <TableHead>Estado</TableHead>
-              <TableHead>Publicado</TableHead>
-              <TableHead>Instancias activas</TableHead>
-              <TableHead className="text-right">Acciones</TableHead>
+              <TableHead>{t("engine.name")}</TableHead>
+              <TableHead>{t("engine.version")}</TableHead>
+              <TableHead>{t("engine.status")}</TableHead>
+              <TableHead>{t("engine.published")}</TableHead>
+              <TableHead>{t("engine.activeInstances")}</TableHead>
+              <TableHead className="text-right">{t("engine.actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -321,14 +324,14 @@ function DefinitionsTab({ canEdit, draftsOnly = false }: { canEdit: boolean; dra
                 key={d.id}
                 className="cursor-pointer"
                 onClick={() => navigate({ to: "/modeler", search: { definitionId: d.id } })}
-                title="Ver diagrama con estados de instancia"
+                title={t("engine.viewDef")}
               >
                 <TableCell className="font-medium">
                   <div className="flex items-center gap-2">
                     {d.name}
                     {draftAt && (
-                      <Badge variant="secondary" className="gap-1 bg-amber-500/15 text-amber-700 dark:text-amber-300" title={`Borrador guardado: ${fmtDate(draftAt)}`}>
-                        <FileEdit className="h-3 w-3" /> Borrador
+                      <Badge variant="secondary" className="gap-1 bg-amber-500/15 text-amber-700 dark:text-amber-300" title={t("engine.draft") + ": " + fmtDate(draftAt)}>
+                        <FileEdit className="h-3 w-3" /> {t("engine.draft")}
                       </Badge>
                     )}
                   </div>
@@ -342,22 +345,22 @@ function DefinitionsTab({ canEdit, draftsOnly = false }: { canEdit: boolean; dra
                     {draftAt && canEdit && (
                       <Button size="sm" variant="secondary"
                         onClick={() => setOpenStart({ id: d.id, name: `${d.name} v${d.version}` })}
-                        title={`Continuar borrador del ${fmtDate(draftAt)}`}>
-                        <FileEdit className="mr-1 h-3.5 w-3.5" /> Continuar borrador
+                        title={t("engine.continueDraft") + " " + fmtDate(draftAt)}>
+                        <FileEdit className="mr-1 h-3.5 w-3.5" /> {t("engine.continueDraft")}
                       </Button>
                     )}
                     <Button size="sm" variant="default" disabled={!canEdit || d.status !== "active"}
                       onClick={() => { setOpenStart({ id: d.id, name: `${d.name} v${d.version}` }); }}>
-                      <Rocket className="mr-1 h-3.5 w-3.5" /> Iniciar
+                      <Rocket className="mr-1 h-3.5 w-3.5" /> {t("engine.start")}
                     </Button>
                     {canEdit && d.status === "active" && (
                       <Button size="sm" variant="outline" onClick={() => setStatusMut.mutate({ id: d.id, status: "inactive" })}>
-                        <PowerOff className="mr-1 h-3.5 w-3.5" /> Desactivar
+                        <PowerOff className="mr-1 h-3.5 w-3.5" /> {t("engine.deactivate")}
                       </Button>
                     )}
                     {canEdit && d.status !== "active" && (
                       <Button size="sm" variant="outline" onClick={() => setStatusMut.mutate({ id: d.id, status: "active" })}>
-                        Activar
+                        {t("engine.activate")}
                       </Button>
                     )}
                     {canEdit && d.status !== "active" && (d.total_instances ?? 0) === 0 && (
@@ -366,13 +369,13 @@ function DefinitionsTab({ canEdit, draftsOnly = false }: { canEdit: boolean; dra
                         variant="outline"
                         className="text-rose-600 hover:text-rose-700 hover:bg-rose-500/10"
                         onClick={() => {
-                          if (confirm(`¿Borrar la plantilla "${d.name} v${d.version}"? Esta acción no se puede deshacer.`)) {
+                          if (confirm(t("engine.confirmDeleteTemplate", { name: `${d.name} v${d.version}` }))) {
                             deleteMut.mutate(d.id);
                           }
                         }}
-                        title="Borrar plantilla (solo si está inactiva y nunca se ejecutó)"
+                        title={t("engine.deleteTemplateHint")}
                       >
-                        <Trash2 className="mr-1 h-3.5 w-3.5" /> Borrar
+                        <Trash2 className="mr-1 h-3.5 w-3.5" /> {t("engine.delete")}
                       </Button>
                     )}
                   </div>
@@ -383,7 +386,7 @@ function DefinitionsTab({ canEdit, draftsOnly = false }: { canEdit: boolean; dra
 
             {!q.data?.length && (
               <TableRow><TableCell colSpan={6} className="text-center text-sm text-muted-foreground py-8">
-                Aún no hay definiciones. Publica desde el modelador.
+                {t("engine.noDefs")}
               </TableCell></TableRow>
             )}
           </TableBody>
@@ -393,7 +396,7 @@ function DefinitionsTab({ canEdit, draftsOnly = false }: { canEdit: boolean; dra
       <Dialog open={!!openStart} onOpenChange={(o) => !o && setOpenStart(null)}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Lanzar instancia</DialogTitle>
+            <DialogTitle>{t("engine.launchInstance")}</DialogTitle>
             <DialogDescription>{openStart?.name}</DialogDescription>
           </DialogHeader>
           {openStart && (
@@ -412,6 +415,7 @@ function DefinitionsTab({ canEdit, draftsOnly = false }: { canEdit: boolean; dra
 
 // ----------------- INSTANCES TAB -----------------
 function InstancesTab({ canEdit }: { canEdit: boolean }) {
+  const { t } = useTranslation();
   const qc = useQueryClient();
   const listFn = useServerFn(listInstances);
   const { currentClientId, environment } = useClient();
@@ -433,17 +437,17 @@ function InstancesTab({ canEdit }: { canEdit: boolean }) {
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-3">
-        <Label className="text-xs">Estado</Label>
+        <Label className="text-xs">{t("engine.statusFilter")}</Label>
         <Select value={status} onValueChange={setStatus}>
           <SelectTrigger className="h-8 w-40"><SelectValue /></SelectTrigger>
           <SelectContent>
             {["all", "running", "waiting", "paused", "completed", "aborted", "error"].map((s) => (
-              <SelectItem key={s} value={s}>{s === "all" ? "Todos" : STATUS_LABEL[s] ?? s}</SelectItem>
+              <SelectItem key={s} value={s}>{s === "all" ? t("engine.all") : STATUS_LABEL[s] ?? s}</SelectItem>
             ))}
           </SelectContent>
         </Select>
         <Button variant="outline" size="sm" onClick={() => qc.invalidateQueries({ queryKey: ["engine-instances"] })}>
-          <RefreshCw className="mr-2 h-3.5 w-3.5" /> Recargar
+          <RefreshCw className="mr-2 h-3.5 w-3.5" /> {t("engine.refresh")}
         </Button>
       </div>
 
@@ -451,11 +455,11 @@ function InstancesTab({ canEdit }: { canEdit: boolean }) {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>ID</TableHead>
-              <TableHead>Definición</TableHead>
-              <TableHead>Estado</TableHead>
-              <TableHead>Iniciada</TableHead>
-              <TableHead>Finalizada</TableHead>
+              <TableHead>{t("engine.instanceId")}</TableHead>
+              <TableHead>{t("engine.defName")}</TableHead>
+              <TableHead>{t("engine.status")}</TableHead>
+              <TableHead>{t("engine.started")}</TableHead>
+              <TableHead>{t("engine.ended")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -470,7 +474,7 @@ function InstancesTab({ canEdit }: { canEdit: boolean }) {
             ))}
             {!q.data?.length && (
               <TableRow><TableCell colSpan={5} className="text-center text-sm text-muted-foreground py-8">
-                Sin instancias.
+                {t("engine.noInstances")}
               </TableCell></TableRow>
             )}
           </TableBody>
@@ -487,6 +491,7 @@ function InstancesTab({ canEdit }: { canEdit: boolean }) {
 }
 
 function InstanceDetail({ id, canEdit, onClose }: { id: string; canEdit: boolean; onClose: () => void }) {
+  const { t } = useTranslation();
   const qc = useQueryClient();
   const getFn = useServerFn(getInstanceDetail);
   const pauseFn = useServerFn(pauseInstance);
@@ -543,7 +548,7 @@ function InstanceDetail({ id, canEdit, onClose }: { id: string; canEdit: boolean
   const abortM = useMutation({ mutationFn: () => abortFn({ data: { instanceId: id } }), ...mkOpts });
   const advM = useMutation({ mutationFn: () => advanceFn({ data: { instanceId: id } }), ...mkOpts });
 
-  if (q.isLoading || !q.data) return <div className="p-4 text-sm text-muted-foreground">Cargando…</div>;
+  if (q.isLoading || !q.data) return <div className="p-4 text-sm text-muted-foreground">{t("common.loading")}</div>;
   const { instance, tokens, tasks, events } = q.data as any;
   const def = instance.process_definitions;
   const nodes: any[] = def?.nodes ?? [];
@@ -555,7 +560,7 @@ function InstanceDetail({ id, canEdit, onClose }: { id: string; canEdit: boolean
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="text-lg font-display font-medium">Visualización de la ejecución de una instancia del Proceso:</h2>
+        <h2 className="text-lg font-display font-medium">{t("engine.instanceDetail")}</h2>
         <p className="text-sm text-muted-foreground">
           {def?.name} <span className="text-xs">v{def?.version}</span>
         </p>
@@ -570,22 +575,22 @@ function InstanceDetail({ id, canEdit, onClose }: { id: string; canEdit: boolean
       {canEdit && (
         <div className="flex flex-wrap gap-2">
           <Button size="sm" variant="outline" onClick={onClose}>
-            <ArrowLeft className="mr-1 h-3.5 w-3.5" /> Volver al motor
+            <ArrowLeft className="mr-1 h-3.5 w-3.5" /> {t("engine.backToEngine")}
           </Button>
           <Button size="sm" variant="outline" disabled={instance.status !== "running" && instance.status !== "waiting"}
             onClick={() => pauseM.mutate()}>
-            <Pause className="mr-1 h-3.5 w-3.5" /> Pausar
+            <Pause className="mr-1 h-3.5 w-3.5" /> {t("engine.pause")}
           </Button>
           <Button size="sm" variant="outline" disabled={instance.status !== "paused"} onClick={() => resumeM.mutate()}>
-            <Play className="mr-1 h-3.5 w-3.5" /> Reanudar
+            <Play className="mr-1 h-3.5 w-3.5" /> {t("engine.resume")}
           </Button>
           <Button size="sm" variant="outline" disabled={!["running", "waiting", "paused", "error"].includes(instance.status)}
             onClick={() => advM.mutate()}>
-            <FastForward className="mr-1 h-3.5 w-3.5" /> Avanzar
+            <FastForward className="mr-1 h-3.5 w-3.5" /> {t("engine.advance")}
           </Button>
           <Button size="sm" variant="destructive" disabled={["completed", "aborted"].includes(instance.status)}
             onClick={() => abortM.mutate()}>
-            <StopIcon className="mr-1 h-3.5 w-3.5" /> Abortar
+            <StopIcon className="mr-1 h-3.5 w-3.5" /> {t("engine.abort")}
           </Button>
         </div>
       )}
@@ -593,7 +598,7 @@ function InstanceDetail({ id, canEdit, onClose }: { id: string; canEdit: boolean
       {!canEdit && (
         <div className="flex flex-wrap gap-2">
           <Button size="sm" variant="outline" onClick={onClose}>
-            <ArrowLeft className="mr-1 h-3.5 w-3.5" /> Volver al motor
+            <ArrowLeft className="mr-1 h-3.5 w-3.5" /> {t("engine.backToEngine")}
           </Button>
         </div>
       )}
@@ -613,10 +618,10 @@ function InstanceDetail({ id, canEdit, onClose }: { id: string; canEdit: boolean
 
       <Tabs defaultValue="tokens">
         <TabsList>
-          <TabsTrigger value="tokens">Tokens ({tokens.length})</TabsTrigger>
-          <TabsTrigger value="tasks">Tareas ({tasks.length})</TabsTrigger>
-          <TabsTrigger value="vars">Variables</TabsTrigger>
-          <TabsTrigger value="log">Traza ({events.length})</TabsTrigger>
+          <TabsTrigger value="tokens">{t("engine.tokens", { count: tokens.length })}</TabsTrigger>
+          <TabsTrigger value="tasks">{t("engine.tasks", { count: tasks.length })}</TabsTrigger>
+          <TabsTrigger value="vars">{t("engine.variables")}</TabsTrigger>
+          <TabsTrigger value="log">{t("engine.trace", { count: events.length })}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="tokens" className="space-y-2">
@@ -627,19 +632,19 @@ function InstanceDetail({ id, canEdit, onClose }: { id: string; canEdit: boolean
                 <StatusBadge value={t.status} />
               </div>
               <div className="mt-1 text-[11px] text-muted-foreground">
-                Entró: {fmtDate(t.entered_at)} · Salió: {fmtDate(t.exited_at)}
-                {t.wake_at && ` · Despierta: ${fmtDate(t.wake_at)}`}
+                {t("engine.entered")}: {fmtDate(t.entered_at)} · {t("engine.exited")}: {fmtDate(t.exited_at)}
+                {t.wake_at && ` · ${t("engine.wake")}: ${fmtDate(t.wake_at)}`}
               </div>
             </div>
           ))}
-          {!tokens.length && <p className="text-xs text-muted-foreground">Sin tokens.</p>}
+          {!tokens.length && <p className="text-xs text-muted-foreground">{t("engine.noTokens")}</p>}
         </TabsContent>
 
         <TabsContent value="tasks" className="space-y-2">
           {tasks.map((tk: any) => (
             <TaskCard key={tk.id} task={tk} nodeLabel={nodeLabel(tk.node_id)} onChanged={inv} />
           ))}
-          {!tasks.length && <p className="text-xs text-muted-foreground">Sin tareas.</p>}
+          {!tasks.length && <p className="text-xs text-muted-foreground">{t("engine.noTasks")}</p>}
         </TabsContent>
 
         <TabsContent value="vars">
@@ -657,7 +662,7 @@ function InstanceDetail({ id, canEdit, onClose }: { id: string; canEdit: boolean
                     <span className="font-medium">{e.event_type}</span>
                     <span className="text-muted-foreground">{fmtDate(e.created_at)}</span>
                   </div>
-                  {e.node_id && <div className="text-[11px] text-muted-foreground">Nodo: {nodeLabel(e.node_id)}</div>}
+                  {e.node_id && <div className="text-[11px] text-muted-foreground">{t("engine.node")}: {nodeLabel(e.node_id)}</div>}
                   {e.payload && Object.keys(e.payload).length > 0 && (
                     <pre className="mt-1 overflow-auto text-[10px] text-muted-foreground">{JSON.stringify(e.payload, null, 2)}</pre>
                   )}
@@ -672,6 +677,7 @@ function InstanceDetail({ id, canEdit, onClose }: { id: string; canEdit: boolean
 }
 
 function TaskCard({ task, nodeLabel, onChanged }: { task: any; nodeLabel: string; onChanged: () => void }) {
+  const { t } = useTranslation();
   const completeFn = useServerFn(completeTask);
   const claimFn = useServerFn(claimTask);
   const [result, setResult] = useState("{}");
@@ -679,12 +685,12 @@ function TaskCard({ task, nodeLabel, onChanged }: { task: any; nodeLabel: string
 
   const claimM = useMutation({
     mutationFn: () => claimFn({ data: { taskId: task.id } }),
-    onSuccess: () => { toast.success("Tarea asignada"); onChanged(); },
+    onSuccess: () => { toast.success(t("engine.taskAssigned")); onChanged(); },
     onError: (e: Error) => toast.error(e.message),
   });
   const completeM = useMutation({
     mutationFn: (r: Record<string, unknown>) => completeFn({ data: { taskId: task.id, result: r } }),
-    onSuccess: () => { toast.success("Tarea completada"); setOpen(false); onChanged(); },
+    onSuccess: () => { toast.success(t("engine.taskCompleted")); setOpen(false); onChanged(); },
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -703,31 +709,31 @@ function TaskCard({ task, nodeLabel, onChanged }: { task: any; nodeLabel: string
         <div className="mt-2 flex gap-2">
           {task.status === "pending" && (
             <Button size="sm" variant="outline" onClick={() => claimM.mutate()} disabled={claimM.isPending}>
-              Tomar
+              {t("engine.take")}
             </Button>
           )}
           <Button size="sm" onClick={() => setOpen(true)}>
-            <CheckCircle2 className="mr-1 h-3.5 w-3.5" /> Completar
+            <CheckCircle2 className="mr-1 h-3.5 w-3.5" /> {t("engine.complete")}
           </Button>
         </div>
       )}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Completar tarea</DialogTitle>
-            <DialogDescription>{nodeLabel}</DialogDescription>
-          </DialogHeader>
-          <Label className="text-xs">Resultado (JSON, se mezcla con variables)</Label>
+          <DialogTitle>{t("engine.completeTask")}</DialogTitle>
+          <DialogDescription>{nodeLabel}</DialogDescription>
+        </DialogHeader>
+        <Label className="text-xs">{t("engine.resultLabel")}</Label>
           <textarea value={result} onChange={(e) => setResult(e.target.value)}
             className="min-h-32 w-full rounded-md border bg-background p-2 font-mono text-xs" />
           <DialogFooter>
-            <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
+            <Button variant="outline" onClick={() => setOpen(false)}>{t("engine.cancel")}</Button>
             <Button onClick={() => {
               let parsed: Record<string, unknown> = {};
               try { parsed = JSON.parse(result || "{}"); }
-              catch { return toast.error("JSON inválido"); }
+              catch { return toast.error(t("engine.invalidJson")); }
               completeM.mutate(parsed);
-            }} disabled={completeM.isPending}>Completar</Button>
+            }} disabled={completeM.isPending}>{t("engine.complete")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -835,7 +841,7 @@ function StartInstanceForm({
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["engine-draft", definitionId] });
       qc.invalidateQueries({ queryKey: ["engine-my-drafts"] });
-      toast.success("Borrador guardado");
+      toast.success(t("engine.draftSaved"));
       onCancel();
     },
     onError: (e: Error) => toast.error(e.message),
@@ -847,7 +853,7 @@ function StartInstanceForm({
       qc.invalidateQueries({ queryKey: ["engine-my-drafts"] });
       setValues({});
       setErrors({});
-      toast.success("Borrador descartado");
+      toast.success(t("engine.draftDiscarded"));
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -861,7 +867,7 @@ function StartInstanceForm({
     });
   };
 
-  if (q.isLoading) return <div className="py-6 text-sm text-muted-foreground">Cargando variables…</div>;
+  if (q.isLoading) return <div className="py-6 text-sm text-muted-foreground">{t("common.loading")}</div>;
   if (q.error) return <div className="py-2 text-sm text-rose-600">{(q.error as Error).message}</div>;
 
   const variables = (q.data?.variables ?? []) as DefVar[];
@@ -874,16 +880,16 @@ function StartInstanceForm({
   const parse = (v: DefVar, raw: string | undefined): { ok: true; value: unknown } | { ok: false; error: string } => {
     const trimmed = (raw ?? "").trim();
     if (trimmed === "") {
-      if (v.is_input) return { ok: false, error: "Requerido" };
+      if (v.is_input) return { ok: false, error: t("engine.required") };
       if (v.default_value !== null && v.default_value !== undefined) return { ok: true, value: v.default_value };
       return { ok: true, value: null };
     }
-    const t = normalizeVarType(v.var_type);
+    const varType = normalizeVarType(v.var_type);
     // datetime-local emits "YYYY-MM-DDTHH:MM"; convert to a value Postgres accepts.
-    const forValidation = (t === "timestamp" || t === "timestamptz")
+    const forValidation = (varType === "timestamp" || varType === "timestamptz")
       ? trimmed.replace("T", " ")
       : trimmed;
-    const err = validateValueForType(forValidation, t);
+    const err = validateValueForType(forValidation, varType);
     if (err) return { ok: false, error: err };
     return { ok: true, value: coerceValue(v.var_type, forValidation) };
   };
@@ -903,7 +909,7 @@ function StartInstanceForm({
         }
       }
       if (missing.length) {
-        return toast.error(`Faltan variables requeridas sin valor por defecto: ${missing.join(", ")}`);
+        return toast.error(t("engine.missingRequired", { names: missing.join(", ") }));
       }
       onSubmit(out);
       return;
@@ -916,7 +922,7 @@ function StartInstanceForm({
       else if (r.value !== null) out[v.name] = r.value;
     }
     setErrors(errs);
-    if (Object.keys(errs).length) return toast.error("Revisa los campos marcados");
+    if (Object.keys(errs).length) return toast.error(t("engine.checkFields"));
     onSubmit(out);
   };
 
@@ -935,7 +941,7 @@ function StartInstanceForm({
   } else {
     for (const v of variables) {
       if (v.is_input && (v.default_value === null || v.default_value === undefined)) {
-        liveErrors[v.name] = "Requerido (sin valor por defecto)";
+        liveErrors[v.name] = t("engine.required") + " (sin valor por defecto)";
       }
     }
   }
@@ -946,8 +952,8 @@ function StartInstanceForm({
       {hasDraft && (
         <div className="flex items-center justify-between rounded-md border border-amber-300/50 bg-amber-50 px-3 py-2 text-xs dark:border-amber-700/40 dark:bg-amber-900/20">
           <span>
-            <Badge variant="secondary" className="mr-2">Borrador</Badge>
-            Recuperado del {draftDate}
+            <Badge variant="secondary" className="mr-2">{t("engine.draft")}</Badge>
+            {t("engine.draftBanner", { date: draftDate })}
           </span>
           <Button
             size="sm"
@@ -956,26 +962,23 @@ function StartInstanceForm({
             onClick={() => discardDraftMut.mutate()}
             disabled={discardDraftMut.isPending}
           >
-            Descartar
+            {t("engine.discard")}
           </Button>
         </div>
       )}
       {!isManual && (
         <div className="rounded-md border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
-          Tipo de inicio: <span className="font-medium text-foreground">{startTypeName}</span>. Este evento de inicio no es manual, por lo que no se solicitan variables.
-          La instancia se lanzará sin formulario de entrada.
+          {t("engine.startType")}: <span className="font-medium text-foreground">{startTypeName}</span>. {t("engine.startTypeDesc", { type: startTypeName })}
         </div>
       )}
       {isManual && variables.length === 0 && (
         <p className="text-xs text-muted-foreground">
-          Esta definición no declara variables. Se lanzará sin datos iniciales.
+          {t("engine.noVarsDeclared")}
         </p>
       )}
       {hasErrors && isManual && variables.length > 0 && (
         <div className="rounded-md border border-rose-300/60 bg-rose-50 px-3 py-2 text-xs text-rose-700 dark:border-rose-700/40 dark:bg-rose-900/20 dark:text-rose-300">
-          {Object.keys(liveErrors).length === 1
-            ? "1 campo con formato inválido o requerido sin valor."
-            : `${Object.keys(liveErrors).length} campos con formato inválido o requeridos sin valor.`}
+          {t("engine.fieldErrors", { count: Object.keys(liveErrors).length })}
         </div>
       )}
       {isManual && variables.map((v) => {
@@ -984,7 +987,7 @@ function StartInstanceForm({
         const norm = normalizeVarType(v.var_type);
         const example = exampleForType(norm);
         const placeholder = v.default_value != null
-          ? `Por defecto: ${String(v.default_value)}`
+          ? t("engine.default", { value: String(v.default_value) })
           : example;
         const isBool = norm === "boolean";
         const isJson = norm === "json" || norm === "jsonb";
@@ -1033,30 +1036,30 @@ function StartInstanceForm({
               />
             )}
             {!isBool && example && !err && (
-              <p className="text-xs text-muted-foreground">Ejemplo: <span className="font-mono">{example}</span></p>
+              <p className="text-xs text-muted-foreground">{t("engine.example")} <span className="font-mono">{example}</span></p>
             )}
             {err && <p className="text-xs text-rose-600">{err}</p>}
           </div>
         );
       })}
       <DialogFooter className="pt-2 gap-2">
-        <Button variant="outline" onClick={onCancel}>Cancelar</Button>
+        <Button variant="outline" onClick={onCancel}>{t("engine.cancel")}</Button>
         {isManual && variables.length > 0 && (
           <Button
             variant="secondary"
             onClick={() => saveDraftMut.mutate()}
             disabled={saveDraftMut.isPending}
-            title="Guarda los valores actuales sin lanzar la instancia"
+            title={t("engine.noDraftSave")}
           >
-            Guardar borrador
+            {t("engine.saveDraft")}
           </Button>
         )}
         <Button
           onClick={submit}
           disabled={submitting || hasErrors}
-          title={hasErrors ? "Corrige los errores del formulario para lanzar" : undefined}
+          title={hasErrors ? t("engine.fixErrors") : undefined}
         >
-          <Play className="mr-1 h-3.5 w-3.5" /> Lanzar
+          <Play className="mr-1 h-3.5 w-3.5" /> {t("engine.launch")}
         </Button>
       </DialogFooter>
     </div>

@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -45,6 +46,7 @@ const CATEGORY_META: Record<Category, { label: string; bg: string; chip: string;
 const ORDER: Category[] = ["control", "estrategico", "misional", "transversal", "apoyo"];
 
 function ProcessMapPage() {
+  const { t } = useTranslation();
   const { canEdit } = useAuth();
   const { entity: selectedEntity_ } = useSelectedEntity();
   const [entityFilter, setEntityFilter] = useState<string>(selectedEntity_?.id ?? "__all__");
@@ -92,9 +94,16 @@ function ProcessMapPage() {
     return acc;
   }, [filteredMacros]);
 
+  const catLabel: Record<string, string> = {
+    control: t("processMap.catControl"),
+    estrategico: t("processMap.catStrategic"),
+    misional: t("processMap.catCore"),
+    transversal: t("processMap.catCross"),
+    apoyo: t("processMap.catSupport"),
+  };
   const selectedEntity = entitiesQ.data?.find((e) => e.id === entityFilter);
-  const inputsText = selectedEntity?.stakeholder_inputs?.trim() || "Necesidades y expectativas de los grupos de interés y del entorno";
-  const outputsText = selectedEntity?.stakeholder_outputs?.trim() || "Satisfacción de los grupos de interés";
+  const inputsText = selectedEntity?.stakeholder_inputs?.trim() || t("processMap.defaultInputs");
+  const outputsText = selectedEntity?.stakeholder_outputs?.trim() || t("processMap.defaultOutputs");
 
   return (
     <div className="mx-auto max-w-7xl space-y-6 px-6 py-8">
@@ -102,16 +111,16 @@ function ProcessMapPage() {
         <div className="flex items-center gap-3">
           <MapIcon className="h-6 w-6" />
           <div>
-            <h1 className="font-display text-2xl font-semibold">Mapa de macroprocesos</h1>
-            <p className="text-sm text-muted-foreground">Vista por categoría: control, estratégicos, misionales, transversales y apoyo.</p>
+            <h1 className="font-display text-2xl font-semibold">{t("processMap.title")}</h1>
+            <p className="text-sm text-muted-foreground">{t("processMap.subtitle")}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
           <Select value={entityFilter} onValueChange={setEntityFilter}>
-            <SelectTrigger className="w-[220px]"><SelectValue placeholder="Entidad" /></SelectTrigger>
+            <SelectTrigger className="w-[220px]"><SelectValue placeholder={t("processMap.entity")} /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="__all__">Todas las entidades</SelectItem>
-              <SelectItem value="__none__">Sin entidad</SelectItem>
+              <SelectItem value="__all__">{t("processMap.filterAll")}</SelectItem>
+              <SelectItem value="__none__">{t("processMap.filterNone")}</SelectItem>
               {(entitiesQ.data ?? []).map((e) => (
                 <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>
               ))}
@@ -120,7 +129,7 @@ function ProcessMapPage() {
           {canEdit && (
             <Button asChild size="sm">
               <Link to="/hierarchy/$level/$id" params={{ level: "macroprocesses", id: "new" }} search={{ parent: "" }}>
-                <Plus className="mr-2 h-4 w-4" /> Macroproceso
+                <Plus className="mr-2 h-4 w-4" /> {t("processMap.addProcess")}
               </Link>
             </Button>
           )}
@@ -131,7 +140,7 @@ function ProcessMapPage() {
         {/* Inputs */}
         <aside className="hidden lg:flex flex-col justify-center">
           <div className="rounded-xl border-2 border-dashed bg-card p-4 text-center shadow-sm">
-            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Entradas</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t("processMap.inputs")}</p>
             <p className="mt-2 text-sm leading-snug">{inputsText}</p>
             <ArrowRight className="mx-auto mt-3 h-5 w-5 text-muted-foreground" />
           </div>
@@ -149,20 +158,20 @@ function ProcessMapPage() {
                   <div className="flex items-center gap-2">
                     <span className={`inline-block h-2.5 w-2.5 rounded-full ${meta.chip}`} />
                     <h2 className={`font-display text-sm font-semibold uppercase tracking-wider ${meta.text}`}>
-                      Macroprocesos {meta.label.toLowerCase()}
+                      {t("processMap.processPrefix")} {catLabel[cat].toLowerCase()}
                     </h2>
                   </div>
                   {canEdit && (
                     <Button asChild size="sm" variant="ghost" className="h-7 px-2 text-xs">
                       <Link to="/hierarchy/$level/$id" params={{ level: "macroprocesses", id: "new" }} search={{ parent: "" }}>
-                        <Plus className="mr-1 h-3.5 w-3.5" /> Añadir
+                        <Plus className="mr-1 h-3.5 w-3.5" /> {t("processMap.addLabel")}
                       </Link>
                     </Button>
                   )}
                 </div>
                 {items.length === 0 ? (
                   <p className="rounded-md border border-dashed bg-background/60 px-3 py-4 text-center text-xs text-muted-foreground">
-                    Sin macroprocesos en esta banda.
+                    {t("processMap.emptyBand")}
                   </p>
                 ) : (
                   <div className="flex flex-wrap gap-2">
@@ -190,13 +199,13 @@ function ProcessMapPage() {
         <aside className="hidden lg:flex flex-col justify-center">
           <div className="rounded-xl border-2 border-dashed bg-card p-4 text-center shadow-sm">
             <ArrowRight className="mx-auto mb-3 h-5 w-5 text-muted-foreground" />
-            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Salidas</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t("processMap.outputs")}</p>
             <p className="mt-2 text-sm leading-snug">{outputsText}</p>
           </div>
         </aside>
       </div>
 
-      {macrosQ.isLoading && <p className="text-center text-sm text-muted-foreground">Cargando…</p>}
+      {macrosQ.isLoading && <p className="text-center text-sm text-muted-foreground">{t("common.loading")}</p>}
     </div>
   );
 }

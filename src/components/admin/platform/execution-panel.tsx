@@ -1,10 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip as RTooltip } from "recharts";
 import { PlatformExecutionMatrix } from "./modeling-panel";
 
 export function PlatformExecutionPanel() {
+  const { t } = useTranslation();
   const { data } = useQuery({
     queryKey: ["platform-execution-overview"],
     queryFn: async () => {
@@ -30,7 +32,7 @@ export function PlatformExecutionPanel() {
     <div className="space-y-4">
       <div className="grid md:grid-cols-2 gap-4">
         <Card>
-          <CardHeader><CardTitle className="text-base">Instancias por estado</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-base">{t("adminExecution.instancesByStatus")}</CardTitle></CardHeader>
           <CardContent>
             <div className="h-56">
               <ResponsiveContainer>
@@ -46,7 +48,7 @@ export function PlatformExecutionPanel() {
           </CardContent>
         </Card>
         <Card>
-          <CardHeader><CardTitle className="text-base">Tareas por estado</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-base">{t("adminExecution.tasksByStatus")}</CardTitle></CardHeader>
           <CardContent>
             <div className="h-56">
               <ResponsiveContainer>

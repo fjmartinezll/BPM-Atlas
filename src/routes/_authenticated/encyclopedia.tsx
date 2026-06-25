@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
-import { Workflow, Layers, GitBranch, ListTree, ListChecks, CheckSquare, Shield, Inbox, ArrowRight, RefreshCcw } from "lucide-react";
+import { Workflow, GitBranch, ListTree, CheckSquare, Shield, Inbox, ArrowRight, RefreshCcw } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/encyclopedia")({
   head: () => ({ meta: [{ title: "BPM Encyclopedia — BPM Atlas" }] }),

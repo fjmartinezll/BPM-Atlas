@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ReactFlow, ReactFlowProvider, Background, Controls, MiniMap, MarkerType,
   type Edge, type Node,
@@ -15,16 +16,6 @@ export const Route = createFileRoute("/_authenticated/node-er")({
 
 // Palette kinds available in the "procesos" and "subprocesos" modelers.
 // Kept in sync with KIND_META in the modeler.
-const PALETTE_KINDS: Array<{ code: string; label: string; color: string }> = [
-  { code: "start",        label: "Evento de inicio",       color: "#22c55e" },
-  { code: "intermediate", label: "Evento intermedio",      color: "#eab308" },
-  { code: "end",          label: "Evento fin",             color: "#ef4444" },
-  { code: "task",         label: "Tarea",                  color: "#3b82f6" },
-  { code: "subprocess",   label: "Subproceso",             color: "#8b5cf6" },
-  { code: "gateway",      label: "Decisión (gateway)",     color: "#f97316" },
-  { code: "pool",         label: "Entidad (pool)",         color: "#0ea5e9" },
-  { code: "lane",         label: "Calle (lane)",           color: "#64748b" },
-];
 
 // All palette kinds belong to the same palette — no parent/child or flow
 // relations between them. The only relation among kinds is "pertenece a la paleta".
@@ -35,6 +26,17 @@ type TypeRow = { id: string; kind_id: string; name: string };
 type SubtypeRow = { id: string; type_id: string; name: string };
 
 function NodeErPage() {
+  const { t } = useTranslation();
+  const PALETTE_KINDS: Array<{ code: string; label: string; color: string }> = [
+    { code: "start",        label: t("nodePalette.start"),       color: "#22c55e" },
+    { code: "intermediate", label: t("nodePalette.intermediate"),      color: "#eab308" },
+    { code: "end",          label: t("nodePalette.end"),             color: "#ef4444" },
+    { code: "task",         label: t("nodePalette.task"),                  color: "#3b82f6" },
+    { code: "subprocess",   label: t("nodePalette.subprocess"),             color: "#8b5cf6" },
+    { code: "gateway",      label: t("nodePalette.gateway"),     color: "#f97316" },
+    { code: "pool",         label: t("nodePalette.pool"),         color: "#0ea5e9" },
+    { code: "lane",         label: t("nodePalette.lane"),           color: "#64748b" },
+  ];
   const taxonomy = useQuery({
     queryKey: ["er-taxonomy"],
     staleTime: STALE.REFERENCE,
@@ -78,7 +80,7 @@ function NodeErPage() {
     nodes.push({
       id: processDiagramId,
       position: { x: COL_DIAGRAM_X, y: paletteY - 120 },
-      data: { label: "Diagrama de proceso" },
+      data: { label: t("nodePalette.diagramProcess") },
       type: "default",
       style: {
         background: "#1e3a8a", color: "#fff", border: "1px solid #1e3a8a",
@@ -88,7 +90,7 @@ function NodeErPage() {
     nodes.push({
       id: subprocessDiagramId,
       position: { x: COL_DIAGRAM_X, y: paletteY + 120 },
-      data: { label: "Diagrama de subproceso\n(expandido, redimensionable)" },
+      data: { label: t("nodePalette.diagramSubprocess") },
       type: "default",
       style: {
         background: "#5b21b6", color: "#fff", border: "1px solid #5b21b6",
@@ -100,7 +102,7 @@ function NodeErPage() {
     nodes.push({
       id: paletteNodeId,
       position: { x: COL_PALETTE_X, y: paletteY },
-      data: { label: "Paleta de modelado" },
+      data: { label: t("nodePalette.palette") },
       type: "default",
       style: {
         background: "#0f172a",
@@ -240,15 +242,15 @@ function NodeErPage() {
   return (
     <div className="flex h-[calc(100vh-3.5rem)] flex-col">
       <div className="border-b bg-card px-4 py-3">
-        <h1 className="text-lg font-semibold">Diagrama entidad-relación de la paleta de modelado</h1>
+        <h1 className="text-lg font-semibold">{t("nodeEr.title")}</h1>
         <p className="text-xs text-muted-foreground">
-          Metamodelo de los modeladores de procesos y subprocesos: el diagrama de proceso usa la paleta; cuando contiene uno o más subprocesos, cada subproceso se expande en su propio diagrama (también basado en la paleta) cuyo tamaño se ajusta con los tiradores de las esquinas.
+          {t("nodeEr.subtitle")}
         </p>
 
       </div>
       <div className="relative flex-1">
-        {taxonomy.isLoading && <div className="p-6 text-sm text-muted-foreground">Cargando…</div>}
-        {taxonomy.error && <div className="p-6 text-sm text-destructive">Error al cargar la tipología.</div>}
+        {taxonomy.isLoading && <div className="p-6 text-sm text-muted-foreground">{t("nodeEr.loading")}</div>}
+        {taxonomy.error && <div className="p-6 text-sm text-destructive">{t("nodeEr.error")}</div>}
         {!taxonomy.isLoading && !taxonomy.error && (
           <ReactFlowProvider>
             <ReactFlow nodes={nodes} edges={edges} fitView proOptions={{ hideAttribution: true }}>

@@ -176,7 +176,7 @@ export function MacroDialog({ entityId, macro, trigger }: { entityId: string; ma
       : await supabase.from("macroprocesses").insert(withTenant(payload));
     setSaving(false);
     if (error) return toast.error(error.message);
-    toast.success(macro ? "Macroproceso actualizado" : "Macroproceso creado");
+    toast.success(macro ? "Mapa de Procesos actualizado" : "Mapa de Procesos creado");
     qc.invalidateQueries({ queryKey: ["cc-hierarchy"] });
     qc.invalidateQueries({ queryKey: ["cc-counts"] });
     setOpen(false);
@@ -398,7 +398,7 @@ function EntityNode({ entity }: { entity: HierEntity }) {
       <CollapsibleContent>
         <div className="pl-8 pr-3 pb-2 space-y-1">
           {entity.macros.map((m) => <MacroNode key={m.id} macro={m} />)}
-          {entity.macros.length === 0 && <div className="text-xs text-muted-foreground py-2">Sin macroprocesos.</div>}
+          {entity.macros.length === 0 && <div className="text-xs text-muted-foreground py-2">Sin mapas de procesos.</div>}
         </div>
       </CollapsibleContent>
     </Collapsible>

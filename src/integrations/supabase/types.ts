@@ -206,6 +206,7 @@ export type Database = {
           id: string
           mission: string | null
           name: string
+          parent_id: string | null
           stakeholder_inputs: string | null
           stakeholder_outputs: string | null
           status: Database["public"]["Enums"]["process_status"]
@@ -221,6 +222,7 @@ export type Database = {
           id?: string
           mission?: string | null
           name: string
+          parent_id?: string | null
           stakeholder_inputs?: string | null
           stakeholder_outputs?: string | null
           status?: Database["public"]["Enums"]["process_status"]
@@ -236,6 +238,7 @@ export type Database = {
           id?: string
           mission?: string | null
           name?: string
+          parent_id?: string | null
           stakeholder_inputs?: string | null
           stakeholder_outputs?: string | null
           status?: Database["public"]["Enums"]["process_status"]
@@ -249,6 +252,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "entities_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
             referencedColumns: ["id"]
           },
         ]
@@ -346,33 +356,39 @@ export type Database = {
         Row: {
           client_id: string | null
           created_at: string
-          description: string | null
+          description: Record<string, string>
           entity_id: string
           environment: string
           id: string
+          label: Record<string, string>
           name: string
+          parent_id: string | null
           sort_order: number
           updated_at: string
         }
         Insert: {
           client_id?: string | null
           created_at?: string
-          description?: string | null
+          description?: Record<string, string>
           entity_id: string
           environment?: string
           id?: string
+          label?: Record<string, string>
           name: string
+          parent_id?: string | null
           sort_order?: number
           updated_at?: string
         }
         Update: {
           client_id?: string | null
           created_at?: string
-          description?: string | null
+          description?: Record<string, string>
           entity_id?: string
           environment?: string
           id?: string
+          label?: Record<string, string>
           name?: string
+          parent_id?: string | null
           sort_order?: number
           updated_at?: string
         }
@@ -1724,6 +1740,7 @@ export type Database = {
           email: string | null
           full_name: string | null
           id: string
+          language: string
           updated_at: string
         }
         Insert: {
@@ -1731,6 +1748,7 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id: string
+          language?: string
           updated_at?: string
         }
         Update: {
@@ -1738,9 +1756,186 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id?: string
+          language?: string
           updated_at?: string
         }
         Relationships: []
+      }
+      org_members: {
+        Row: {
+          client_id: string
+          created_at: string
+          email: string | null
+          entity_id: string
+          environment: string
+          full_name: string
+          id: string
+          language: string
+          phone: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          email?: string | null
+          entity_id: string
+          environment?: string
+          full_name: string
+          id?: string
+          language?: string
+          phone?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          email?: string | null
+          entity_id?: string
+          environment?: string
+          full_name?: string
+          id?: string
+          language?: string
+          phone?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "org_members_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "org_members_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "org_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      org_position_assignments: {
+        Row: {
+          client_id: string
+          created_at: string
+          end_date: string | null
+          environment: string
+          id: string
+          is_primary: boolean
+          member_id: string
+          position_id: string
+          start_date: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          end_date?: string | null
+          environment?: string
+          id?: string
+          is_primary?: boolean
+          member_id: string
+          position_id: string
+          start_date?: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          end_date?: string | null
+          environment?: string
+          id?: string
+          is_primary?: boolean
+          member_id?: string
+          position_id?: string
+          start_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "org_position_assignments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "org_position_assignments_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "org_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "org_position_assignments_position_id_fkey"
+            columns: ["position_id"]
+            isOneToOne: false
+            referencedRelation: "entity_positions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      org_responsibilities: {
+        Row: {
+          client_id: string
+          created_at: string
+          description: Record<string, string>
+          environment: string
+          id: string
+          label: Record<string, string>
+          name: string
+          position_id: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          description?: Record<string, string>
+          environment?: string
+          id?: string
+          label?: Record<string, string>
+          name: string
+          position_id: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          description?: Record<string, string>
+          environment?: string
+          id?: string
+          label?: Record<string, string>
+          name?: string
+          position_id?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "org_responsibilities_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "org_responsibilities_position_id_fkey"
+            columns: ["position_id"]
+            isOneToOne: false
+            referencedRelation: "entity_positions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       signup_confirmations: {
         Row: {

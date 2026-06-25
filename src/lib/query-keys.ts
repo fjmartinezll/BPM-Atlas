@@ -84,6 +84,13 @@ export const queryKeys = {
   },
   ccHierarchy: ["cc-hierarchy"] as const,
   aiHierarchy: (entityId?: string) => ["db-hierarchy", entityId] as const,
+  org: {
+    units: (clientId?: string, env?: string) => ["org-units", clientId, env] as const,
+    positions: (entityId?: string) => ["org-positions", entityId] as const,
+    members: (entityId?: string) => ["org-members", entityId] as const,
+    assignments: (positionId?: string) => ["org-assignments", positionId] as const,
+    responsibilities: (positionId?: string) => ["org-responsibilities", positionId] as const,
+  },
 };
 
 export const STALE = {

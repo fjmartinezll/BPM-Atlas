@@ -8,6 +8,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/lib/auth-context";
 
 const LANGS = [
   { code: "es", label: "Español" },
@@ -22,9 +23,19 @@ const LANGS = [
 
 export function LanguageSwitcher() {
   const { i18n } = useTranslation();
+  const { user, updateLanguage } = useAuth();
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
   const current = LANGS.find((l) => l.code === i18n.language) ?? LANGS[0];
+
+  const handleChange = (code: string) => {
+    if (user) {
+      void updateLanguage(code);
+    } else {
+      void i18n.changeLanguage(code);
+    }
+  };
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -37,7 +48,7 @@ export function LanguageSwitcher() {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         {LANGS.map((l) => (
-          <DropdownMenuItem key={l.code} onClick={() => i18n.changeLanguage(l.code)}>
+          <DropdownMenuItem key={l.code} onClick={() => handleChange(l.code)}>
             {l.label}
           </DropdownMenuItem>
         ))}

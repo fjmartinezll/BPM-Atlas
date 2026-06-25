@@ -7,6 +7,7 @@ import {
   type Edge, type Node, type EdgeProps,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
+import { useTranslation, Trans } from "react-i18next";
 import { useAuth } from "@/lib/auth-context";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,6 +23,7 @@ export const Route = createFileRoute("/_authenticated/admin/entities-er")({
 type TableDef = {
   id: string;
   title: string;
+  displayName?: string;
   subtitle?: string;
   description: string;
   details?: string;
@@ -74,8 +76,8 @@ const TABLES: TableDef[] = [
   {
     id: "macroprocesses",
     title: "macroprocesses",
-    displayName: "Macroprocesos",
-    subtitle: "Modelo: Macroproceso",
+    displayName: "Mapas de Procesos",
+    subtitle: "Modelo: Mapa de Procesos",
     description: "Nivel superior del mapa de procesos. Agrupa procesos relacionados que comparten un objetivo estratégico dentro de una entidad.",
     details: "Tipo de modelo: MACROPROCESO. Es el único modelo con FK directa a entities (entity_id). Los procesos cuelgan del macroproceso vía parent_id, heredando así la pertenencia a la entidad.",
     color: "#8b5cf6",
@@ -101,7 +103,7 @@ const TABLES: TableDef[] = [
     x: 840, y: 240,
     fields: [
       { name: "id", type: "uuid", pk: true },
-      { name: "parent_id", type: "uuid", fk: "macroprocesses", fkField: "id", relDesc: "Macroproceso al que pertenece el proceso." },
+      { name: "parent_id", type: "uuid", fk: "macroprocesses", fkField: "id", relDesc: "Mapa de Procesos al que pertenece el proceso." },
       { name: "process_type_id", type: "uuid", fk: "process_type", relDesc: "Tipo del proceso (catálogo)." },
       { name: "name", type: "text" },
       { name: "owner_id", type: "uuid" },
@@ -625,11 +627,15 @@ type TableNodeData = TableDef & {
 };
 
 function TableNode({ data, selected }: { data: TableNodeData; selected?: boolean }) {
+  const { t } = useTranslation();
+  const countStr = data.recordCount ?? "—";
   const countText = data.kind === "type"
-    ? "catálogo (sin registros en BD)"
+    ? t("adminEntitiesEr.catalogNoRecords")
     : data.countLoading
-      ? "registros: cargando…"
-      : `registros${data.entityFiltered ? ` (entidad: ${data.entityName})` : " (total)"}: ${data.recordCount ?? "—"}`;
+      ? t("adminEntitiesEr.recordsLoading")
+      : data.entityFiltered
+        ? t("adminEntitiesEr.recordsWithEntity", { entityName: data.entityName ?? "", count: countStr })
+        : t("adminEntitiesEr.recordsTotal", { count: countStr });
   const tooltip = `${data.displayName ?? data.title}\n\n${data.description}\n\n${countText}`;
   return (
     <div
@@ -651,7 +657,7 @@ function TableNode({ data, selected }: { data: TableNodeData; selected?: boolean
           <div className="text-[10px] opacity-90 flex items-center gap-1">
             <span className="font-mono truncate">{data.title}</span>
             {data.kind === "type" && (
-              <span className="shrink-0 rounded bg-white/20 px-1 py-0.5 text-[9px] leading-none">catálogo</span>
+              <span className="shrink-0 rounded bg-white/20 px-1 py-0.5 text-[9px] leading-none">{t("adminEntitiesEr.catalogBadge")}</span>
             )}
           </div>
         </div>
@@ -778,6 +784,7 @@ function AutoCenterFirst({ count, firstId }: { count: number; firstId: string | 
 }
 
 function EntitiesErPage() {
+  const { t } = useTranslation();
   const { isAdmin, loading } = useAuth();
   const { entity: selectedEntity } = useSelectedEntity();
   const selectedEntityId = selectedEntity?.id ?? null;
@@ -1014,15 +1021,15 @@ function EntitiesErPage() {
     },
   });
 
-  if (loading) return <div className="p-6 text-muted-foreground">…</div>;
+  if (loading) return <div className="p-6 text-muted-foreground">{t("adminEntitiesEr.loading")}</div>;
   if (!isAdmin) return <Navigate to="/dashboard" />;
 
   const kindLabel: Record<TableDef["kind"], string> = {
-    entity: "Entidad raíz",
-    link: "Tabla puente",
-    model: "Modelo BPM",
-    type: "Catálogo de tipos",
-    execution: "Ejecución / composición del proceso",
+    entity: t("adminEntitiesEr.kindEntity"),
+    link: t("adminEntitiesEr.kindLink"),
+    model: t("adminEntitiesEr.kindModel"),
+    type: t("adminEntitiesEr.kindType"),
+    execution: t("adminEntitiesEr.kindExecution"),
   };
 
   const toggle = (id: string) =>
@@ -1034,91 +1041,93 @@ function EntitiesErPage() {
     });
 
   const grouped: Array<{ kind: TableDef["kind"]; label: string }> = [
-    { kind: "entity", label: "Entidades raíz" },
-    { kind: "link", label: "Tablas puente" },
-    { kind: "model", label: "Modelos BPM" },
-    { kind: "execution", label: "Ejecución del proceso" },
-    { kind: "type", label: "Catálogos de tipos" },
+    { kind: "entity", label: t("adminEntitiesEr.groupEntity") },
+    { kind: "link", label: t("adminEntitiesEr.groupLink") },
+    { kind: "model", label: t("adminEntitiesEr.groupModel") },
+    { kind: "execution", label: t("adminEntitiesEr.groupExecution") },
+    { kind: "type", label: t("adminEntitiesEr.groupType") },
   ];
 
   return (
     <div className="flex h-[calc(100vh-3.5rem)] flex-col">
       <div className="border-b bg-card px-6 py-4">
-        <h1 className="font-display text-2xl font-semibold">Modelo de Tablas y Relaciones</h1>
+        <h1 className="font-display text-2xl font-semibold">{t("adminEntitiesEr.title")}</h1>
         <p className="text-sm text-muted-foreground">
-          Diagrama de las tablas y relaciones que dependen de las Entidades, los Modelos creados y sus tipos. Selecciona en el panel izquierdo qué entidades componen el diagrama, haz <strong>clic</strong> sobre una tabla para ver su descripción y <strong>doble clic</strong> para abrir el mantenimiento de sus datos (respetando las claves foráneas).
+          <Trans i18nKey="adminEntitiesEr.description">
+            Diagrama de las tablas y relaciones que dependen de las Entidades, los Modelos creados y sus tipos. Selecciona en el panel izquierdo qué entidades componen el diagrama, haz <strong>clic</strong> sobre una tabla para ver su descripción y <strong>doble clic</strong> para abrir el mantenimiento de sus datos (respetando las claves foráneas).
+          </Trans>
         </p>
       </div>
       <div className="flex-1 relative flex">
         <aside className="w-64 border-r bg-card overflow-y-auto p-4 space-y-4 shrink-0">
           <div className="flex items-center justify-between">
             <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Entidades del diagrama
+              {t("adminEntitiesEr.diagramEntities")}
             </div>
             <div className="text-[10px] text-muted-foreground">{included.size}/{TABLES.length}</div>
           </div>
           <div className="flex flex-wrap gap-2">
             <button
               type="button"
-              onClick={() => setIncluded(new Set(TABLES.map((t) => t.id)))}
+              onClick={() => setIncluded(new Set(TABLES.map((table) => table.id)))}
               className="text-[11px] px-2 py-1 rounded border bg-muted/40 hover:bg-muted"
             >
-              Todas
+              {t("adminEntitiesEr.all")}
             </button>
             <button
               type="button"
               onClick={() => setIncluded(new Set())}
               className="text-[11px] px-2 py-1 rounded border bg-muted/40 hover:bg-muted"
             >
-              Ninguna
+              {t("adminEntitiesEr.none")}
             </button>
             <button
               type="button"
               onClick={() => setIncluded((prev) => expandRelated(prev))}
               disabled={included.size === 0}
-              title="Añade a la selección todas las tablas relacionadas (por FK, de forma transitiva) con las actualmente seleccionadas."
+              title={t("adminEntitiesEr.addRelatedTitle")}
               className="text-[11px] px-2 py-1 rounded border bg-muted/40 hover:bg-muted disabled:opacity-50"
             >
-              + Relacionadas
+              {t("adminEntitiesEr.plusRelated")}
             </button>
           </div>
           <div className="space-y-3">
             {grouped.map((g) => {
-              const items = TABLES.filter((t) => t.kind === g.kind);
+              const items = TABLES.filter((table) => table.kind === g.kind);
               if (items.length === 0) return null;
               return (
                 <div key={g.kind}>
                   <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">{g.label}</div>
                   <ul className="space-y-1">
-                    {items.map((t) => {
-                      const checked = included.has(t.id);
-                      const hasRel = (adjacency.get(t.id)?.size ?? 0) > 0;
+                    {items.map((table) => {
+                      const checked = included.has(table.id);
+                      const hasRel = (adjacency.get(table.id)?.size ?? 0) > 0;
                       return (
-                        <li key={t.id} className="flex items-center gap-1">
+                        <li key={table.id} className="flex items-center gap-1">
                           <label className="flex-1 flex items-start gap-2 text-xs cursor-pointer rounded px-1.5 py-1 hover:bg-muted/60 min-w-0">
                             <input
                               type="checkbox"
                               checked={checked}
-                              onChange={() => toggle(t.id)}
-                              style={{ accentColor: t.color }}
+                              onChange={() => toggle(table.id)}
+                              style={{ accentColor: table.color }}
                               className="mt-0.5"
                             />
                             <span
                               className="inline-block h-2 w-2 rounded-sm shrink-0 mt-1"
-                              style={{ background: t.color }}
+                              style={{ background: table.color }}
                             />
                             <span className="min-w-0 flex-1">
-                              <span className="truncate block font-medium" title={t.title}>{t.displayName ?? t.title}</span>
-                              <span className="block text-[10px] text-muted-foreground leading-snug font-mono" title={t.description}>
-                                {t.title}{t.kind === "type" ? " (catálogo)" : ""}
+                              <span className="truncate block font-medium" title={table.title}>{table.displayName ?? table.title}</span>
+                              <span className="block text-[10px] text-muted-foreground leading-snug font-mono" title={table.description}>
+                                {table.title}{table.kind === "type" ? t("adminEntitiesEr.catalogSuffix") : ""}
                               </span>
                             </span>
                           </label>
                           {hasRel && (
                             <button
                               type="button"
-                              onClick={() => addRelatedTo(t.id)}
-                              title={`Añade ${t.displayName ?? t.title} y sus tablas relacionadas (transitivamente) a la selección.`}
+                              onClick={() => addRelatedTo(table.id)}
+                              title={t("adminEntitiesEr.addRelatedTitle2", { name: table.displayName ?? table.title })}
                               className="shrink-0 text-[10px] px-1.5 py-0.5 rounded border bg-muted/40 hover:bg-muted text-muted-foreground"
                             >
                               +rel
@@ -1171,7 +1180,7 @@ function EntitiesErPage() {
               {selected.displayName ?? selected.title}
             </div>
             <div className="text-sm text-muted-foreground font-mono">
-              {selected.title}{selected.kind === "type" ? " (catálogo)" : ""}
+              {selected.title}{selected.kind === "type" ? t("adminEntitiesEr.catalogSuffix") : ""}
             </div>
           </div>
           <p className="text-sm leading-relaxed">{selected.description}</p>
@@ -1181,7 +1190,7 @@ function EntitiesErPage() {
             </div>
           )}
           <div>
-            <div className="text-xs font-semibold mb-1 text-muted-foreground">Campos</div>
+            <div className="text-xs font-semibold mb-1 text-muted-foreground">{t("adminEntitiesEr.fields")}</div>
             <ul className="text-xs divide-y rounded-md border">
               {selected.fields.map((f) => (
                 <li key={f.name} className="px-3 py-1.5 flex items-center justify-between">
@@ -1198,12 +1207,12 @@ function EntitiesErPage() {
           {realTable && (
             <div>
               <div className="text-xs font-semibold mb-1 text-muted-foreground">
-                Datos existentes {rows ? `(${rows.length})` : ""}
+                {t("adminEntitiesEr.existingData")} {rows ? `(${rows.length})` : ""}
               </div>
-              {rowsLoading && <div className="text-xs text-muted-foreground">Cargando…</div>}
+              {rowsLoading && <div className="text-xs text-muted-foreground">{t("adminEntitiesEr.loading")}</div>}
               {rowsError && <div className="text-xs text-destructive">{(rowsError as Error).message}</div>}
               {rows && rows.length === 0 && (
-                <div className="text-xs text-muted-foreground italic">Sin registros.</div>
+                <div className="text-xs text-muted-foreground italic">{t("adminEntitiesEr.noRecords")}</div>
               )}
               {rows && rows.length > 0 && (
                 <ul className="space-y-2">
@@ -1233,7 +1242,7 @@ function EntitiesErPage() {
             </div>
           )}
           <div className="text-[11px] text-muted-foreground pt-2 border-t">
-            Haz clic en cualquier otra tabla del diagrama para ver su información.
+            {t("adminEntitiesEr.clickHint")}
           </div>
         </aside>
       </div>

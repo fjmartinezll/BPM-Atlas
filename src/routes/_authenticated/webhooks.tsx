@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { Webhook, Play, Save, CheckCircle2, XCircle } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import {
   listWebhookIntegrations,
   updateWebhookIntegration,
@@ -23,6 +24,7 @@ export const Route = createFileRoute("/_authenticated/webhooks")({
 });
 
 function WebhooksPage() {
+  const { t } = useTranslation();
   const listFn = useServerFn(listWebhookIntegrations);
   const q = useQuery({ queryKey: ["webhook-integrations"], staleTime: STALE.REFERENCE, queryFn: () => listFn() });
 
@@ -30,20 +32,18 @@ function WebhooksPage() {
     <div className="p-6 space-y-4">
       <div>
         <h1 className="text-2xl font-bold flex items-center gap-2">
-          <Webhook className="h-6 w-6" /> Webhooks de tareas ejecutables
+          <Webhook className="h-6 w-6" /> {t("webhooks.title")}
         </h1>
         <p className="text-sm text-muted-foreground">
-          Conecta cada elemento ejecutable con un workflow externo (n8n, Make, Zapier). La
-          aplicación hará POST al webhook cuando se dispare la tarea.
+          {t("webhooks.description")}
         </p>
       </div>
 
-      {q.isLoading && <div className="text-sm">Cargando…</div>}
+      {q.isLoading && <div className="text-sm">{t("webhooks.loading")}</div>}
       {q.data?.length === 0 && (
         <Card>
           <CardContent className="py-8 text-center text-sm text-muted-foreground">
-            No hay integraciones para el cliente actual. Crea elementos ejecutables en el
-            modelador y vuelve aquí.
+            {t("webhooks.empty")}
           </CardContent>
         </Card>
       )}
@@ -58,6 +58,7 @@ function WebhooksPage() {
 }
 
 function WebhookCard({ row }: { row: WebhookIntegrationRow }) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const updateFn = useServerFn(updateWebhookIntegration);
   const triggerFn = useServerFn(triggerWebhook);
@@ -83,18 +84,18 @@ function WebhookCard({ row }: { row: WebhookIntegrationRow }) {
         },
       }),
     onSuccess: () => {
-      toast.success("Guardado");
+      toast.success(t("webhooks.saved"));
       queryClient.invalidateQueries({ queryKey: ["webhook-integrations"] });
     },
-    onError: (e: unknown) => toast.error(e instanceof Error ? e.message : "Error"),
+    onError: (e: unknown) => toast.error(e instanceof Error ? e.message : t("webhooks.error")),
   });
 
   const runMu = useMutation({
     mutationFn: () => triggerFn({ data: { id: row.id } }),
     onSuccess: (r) => {
       setLastResult(r);
-      if (r.ok) toast.success(`Webhook OK (${r.status}, ${r.latency_ms}ms)`);
-      else toast.error(`Webhook fallo (${r.status})`);
+      if (r.ok) toast.success(t("webhooks.webhookOk", { status: r.status, latency: r.latency_ms }));
+      else toast.error(t("webhooks.webhookFail", { status: r.status }));
     },
     onError: (e: unknown) => toast.error(e instanceof Error ? e.message : "Error"),
   });
@@ -103,7 +104,7 @@ function WebhookCard({ row }: { row: WebhookIntegrationRow }) {
     <Card>
       <CardHeader>
         <CardTitle className="text-base flex items-center gap-2">
-          <span className="truncate">{row.element_name ?? "Elemento sin nombre"}</span>
+          <span className="truncate">{row.element_name ?? t("webhooks.unnamedElement")}</span>
           {row.element_kind && (
             <Badge variant="outline" className="text-[10px]">
               {row.element_kind}
@@ -118,15 +119,15 @@ function WebhookCard({ row }: { row: WebhookIntegrationRow }) {
       </CardHeader>
       <CardContent className="space-y-3">
         <div>
-          <Label className="text-xs">Webhook URL (n8n / Make / Zapier)</Label>
+          <Label className="text-xs">{t("webhooks.url")}</Label>
           <Input
             value={url}
             onChange={(e) => setUrl(e.target.value)}
-            placeholder="https://hook.example.com/abc123"
+            placeholder={t("webhooks.urlPlaceholder")}
           />
         </div>
         <div>
-          <Label className="text-xs">Secret (opcional · firma HMAC-SHA256)</Label>
+          <Label className="text-xs">{t("webhooks.secret")}</Label>
           <Input
             type="password"
             value={secret}
@@ -135,19 +136,19 @@ function WebhookCard({ row }: { row: WebhookIntegrationRow }) {
           />
         </div>
         <div>
-          <Label className="text-xs">Payload template JSON (opcional)</Label>
+          <Label className="text-xs">{t("webhooks.payloadTemplate")}</Label>
           <Textarea
             value={tpl}
             onChange={(e) => setTpl(e.target.value)}
             rows={3}
-            placeholder='{"campo":"valor"}'
+            placeholder={t("webhooks.payloadPlaceholder")}
             className="font-mono text-xs"
           />
         </div>
 
         <div className="flex gap-2">
           <Button size="sm" onClick={() => saveMu.mutate()} disabled={saveMu.isPending}>
-            <Save className="h-3.5 w-3.5 mr-1" /> Guardar
+            <Save className="h-3.5 w-3.5 mr-1" /> {t("webhooks.save")}
           </Button>
           <Button
             size="sm"
@@ -155,7 +156,7 @@ function WebhookCard({ row }: { row: WebhookIntegrationRow }) {
             onClick={() => runMu.mutate()}
             disabled={runMu.isPending || !url}
           >
-            <Play className="h-3.5 w-3.5 mr-1" /> Probar
+            <Play className="h-3.5 w-3.5 mr-1" /> {t("webhooks.test")}
           </Button>
         </div>
 

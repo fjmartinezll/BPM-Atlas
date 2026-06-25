@@ -29,7 +29,6 @@ import { useClient } from "@/lib/client-context";
 import { useSelectedEntity } from "@/lib/selected-entity";
 
 export const Route = createFileRoute("/_authenticated/ai-suggest")({
-  head: () => ({ meta: [{ title: "Sugerencia IA — BPM Atlas" }] }),
   component: AiSuggestPage,
 });
 
@@ -323,7 +322,7 @@ function AiSuggestPage() {
       (a, p) => a + (p.detail?.tasks?.length ?? 0) + (p.detail?.subprocesses.reduce((b, s) => b + s.tasks.length, 0) ?? 0),
       0,
     );
-    if (procCount + subCount + taskCount > 0 && !window.confirm(`Se eliminará el Macroproceso "${mp.name}" y en cascada: ${procCount} proceso(s), ${subCount} subproceso(s), ${taskCount} tarea(s). ¿Continuar?`)) return;
+    if (procCount + subCount + taskCount > 0 && !window.confirm(t("ai.confirmDeleteMp", { name: mp.name, procCount, subCount, taskCount }))) return;
     const next = structuredClone(proposal);
     next.macroprocesses.splice(mi, 1);
     setProposal(next.macroprocesses.length ? next : null);
@@ -335,27 +334,28 @@ function AiSuggestPage() {
     const procTaskCount = p.detail?.tasks?.length ?? 0;
     const subTaskCount = p.detail?.subprocesses.reduce((a, s) => a + s.tasks.length, 0) ?? 0;
     const taskCount = procTaskCount + subTaskCount;
-    if (subCount + taskCount > 0 && !window.confirm(`Se eliminará el Proceso "${p.name}" y en cascada: ${subCount} subproceso(s), ${taskCount} tarea(s). ¿Continuar?`)) return;
+    if (subCount + taskCount > 0 && !window.confirm(t("ai.confirmDeleteProcess", { name: p.name, subCount, taskCount }))) return;
     mutate((nx) => { nx.macroprocesses[mi].processes.splice(pi, 1); });
   };
   const deleteSubprocess = (mi: number, pi: number, si: number) => {
     if (!proposal) return;
     const sp = proposal.macroprocesses[mi].processes[pi].detail!.subprocesses[si];
-    if (sp.tasks.length > 0 && !window.confirm(`Se eliminará el Subproceso "${sp.name}" y en cascada ${sp.tasks.length} tarea(s). ¿Continuar?`)) return;
+    if (sp.tasks.length > 0 && !window.confirm(t("ai.confirmDeleteSubprocess", { name: sp.name, taskCount: sp.tasks.length }))) return;
     mutate((nx) => { nx.macroprocesses[mi].processes[pi].detail!.subprocesses.splice(si, 1); });
   };
   const deleteSubTask = (mi: number, pi: number, si: number, ti: number) => {
     if (!proposal) return;
     const tk = proposal.macroprocesses[mi].processes[pi].detail!.subprocesses[si].tasks[ti];
-    if (!window.confirm(`Se eliminará la Tarea "${tk.name}". ¿Continuar?`)) return;
+    if (!window.confirm(t("ai.confirmDeleteTask", { name: tk.name }))) return;
     mutate((nx) => { nx.macroprocesses[mi].processes[pi].detail!.subprocesses[si].tasks.splice(ti, 1); });
   };
   const deleteProcTask = (mi: number, pi: number, ti: number) => {
     if (!proposal) return;
     const tk = proposal.macroprocesses[mi].processes[pi].detail!.tasks![ti];
-    if (!window.confirm(`Se eliminará la Tarea "${tk.name}". ¿Continuar?`)) return;
+    if (!window.confirm(t("ai.confirmDeleteTask", { name: tk.name }))) return;
     mutate((nx) => { ensureDetail(nx, mi, pi).tasks!.splice(ti, 1); });
   };
+
 
   // ----- Add (manual) -------
   const addMp = () => {
@@ -397,7 +397,7 @@ function AiSuggestPage() {
     setExpandedSub((s) => new Set(s).add(`${mi}:${pi}:${si}`));
   });
 
-  const envLabel = environment === "produccion" ? "Producción" : "Pruebas";
+  const envLabel = environment === "produccion" ? t("clientSelector.production") : t("clientSelector.testing");
 
   // ----- Reusable task row -----
   const TaskRow = ({
@@ -415,16 +415,16 @@ function AiSuggestPage() {
     return (
       <li className="space-y-1">
         <div className="flex items-center gap-2">
-          <Button size="sm" variant="ghost" onClick={() => toggleTask(taskKey)} className="h-7 w-7 p-0" title={open ? "Colapsar" : "Expandir"}>
+          <Button size="sm" variant="ghost" onClick={() => toggleTask(taskKey)} className="h-7 w-7 p-0" title={open ? t("ai.collapse") : t("ai.expand")}>
             <ChevronRight className={`h-4 w-4 transition-transform ${open ? "rotate-90" : ""}`} />
           </Button>
-          <Badge className="bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/20 text-[10px]">Tarea</Badge>
+          <Badge className="bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/20 text-[10px]">{t("levels.task")}</Badge>
           <Badge variant="secondary" className="font-mono text-[10px]">{tk.code}</Badge>
           <Input value={tk.name} onChange={(e) => onName(e.target.value)} className="h-7 text-xs" />
-          <Button size="sm" variant="outline" onClick={onDetail} disabled={isDetailing || !canEdit} title="Detallar IA" className="h-7 w-7 p-0">
+          <Button size="sm" variant="outline" onClick={onDetail} disabled={isDetailing || !canEdit} title={t("ai.detailIaTitle")} className="h-7 w-7 p-0">
             {isDetailing ? <Loader2 className="h-3 w-3 animate-spin" /> : <Wand2 className="h-3 w-3" />}
           </Button>
-          <Button size="sm" variant="ghost" onClick={onDelete} title="Eliminar" className="text-destructive hover:text-destructive h-7 w-7 p-0">
+          <Button size="sm" variant="ghost" onClick={onDelete} title={t("ai.deleteRow")} className="text-destructive hover:text-destructive h-7 w-7 p-0">
             <Trash2 className="h-3 w-3" />
           </Button>
         </div>
@@ -433,7 +433,7 @@ function AiSuggestPage() {
             value={tk.description ?? ""}
             onChange={(e) => onDesc(e.target.value)}
             rows={2}
-            placeholder="Descripción / acciones de la tarea…"
+            placeholder={t("ai.taskDescriptionPlaceholder")}
             className="text-xs ml-9"
           />
         )}
@@ -478,7 +478,7 @@ function AiSuggestPage() {
       {(loading || loadingDrafts) && (
         <div className="rounded-xl border bg-card p-8 text-center text-muted-foreground">
           <Loader2 className="mx-auto mb-2 h-5 w-5 animate-spin" />
-          {loadingDrafts ? "Cargando propuestas guardadas…" : t("ai.thinking")}
+          {loadingDrafts ? t("ai.loadingDrafts") : t("ai.thinking")}
         </div>
       )}
 
@@ -489,12 +489,12 @@ function AiSuggestPage() {
             {canEdit && (
               <Button variant="outline" onClick={addMp}>
                 <Plus className="mr-2 h-4 w-4" />
-                Añadir Macroproceso
+                {t("ai.addProcessMap")}
               </Button>
             )}
             <Button variant="outline" onClick={() => setDbTreeOpen(true)}>
               <ListTree className="mr-2 h-4 w-4" />
-              Mostrar estructura jerárquica de procesos
+              {t("ai.showHierarchy")}
             </Button>
           </div>
         </div>
@@ -514,13 +514,13 @@ function AiSuggestPage() {
               {proposal.macroprocesses.length} {t("levels.macroprocesses")}
             </h2>
             <div className="flex gap-2">
-              <Button variant="outline" onClick={() => setShowTree((s) => !s)} title={showTree ? "Ocultar estructura" : "Mostrar estructura"}>
+              <Button variant="outline" onClick={() => setShowTree((s) => !s)} title={showTree ? t("ai.hideStructure") : t("ai.showStructure")}>
                 {showTree ? <EyeOff className="mr-2 h-4 w-4" /> : <Eye className="mr-2 h-4 w-4" />}
-                {showTree ? "Ocultar" : "Mostrar"}
+                {showTree ? t("ai.hide") : t("ai.show")}
               </Button>
               {canEdit && (
                 <Button variant="outline" onClick={addMp}>
-                  <Plus className="mr-2 h-4 w-4" /> Añadir Macroproceso
+                  <Plus className="mr-2 h-4 w-4" /> {t("ai.addProcessMap")}
                 </Button>
               )}
               <Button variant="outline" onClick={generate} disabled={loading}>
@@ -542,14 +542,14 @@ function AiSuggestPage() {
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 space-y-2">
                     <div className="flex items-center gap-2">
-                      <Button size="sm" variant="ghost" onClick={() => toggleMp(mi)} className="h-7 w-7 p-0" title={mpOpen ? "Colapsar" : "Expandir"}>
+                      <Button size="sm" variant="ghost" onClick={() => toggleMp(mi)} className="h-7 w-7 p-0" title={mpOpen ? t("ai.collapse") : t("ai.expand")}>
                         <ChevronRight className={`h-4 w-4 transition-transform ${mpOpen ? "rotate-90" : ""}`} />
                       </Button>
-                      <Badge className="bg-primary/15 text-primary hover:bg-primary/20 text-[10px]">Macroproceso</Badge>
+                      <Badge className="bg-primary/15 text-primary hover:bg-primary/20 text-[10px]">{t("levels.macroprocess")}</Badge>
                       <Badge variant="outline" className="font-mono">{mp.code}</Badge>
                       <Input value={mp.name} onChange={(e) => editMpName(mi, e.target.value)} className="h-8 font-display text-base font-medium" />
                       <Badge variant="secondary" className="text-[10px]">{mp.processes.length} P</Badge>
-                      <Button size="sm" variant="ghost" onClick={() => deleteMp(mi)} title="Eliminar" className="text-destructive hover:text-destructive">
+                      <Button size="sm" variant="ghost" onClick={() => deleteMp(mi)} title={t("ai.deleteRow")} className="text-destructive hover:text-destructive">
                         <Trash2 className="h-3.5 w-3.5" />
                       </Button>
                     </div>
@@ -573,7 +573,7 @@ function AiSuggestPage() {
                           <Button size="sm" variant="ghost" onClick={() => toggleProc(key)} className="h-7 w-7 p-0" title={procOpen ? "Colapsar" : "Expandir"} disabled={!hasChildren}>
                             <ChevronRight className={`h-4 w-4 transition-transform ${procOpen && hasChildren ? "rotate-90" : ""} ${!hasChildren ? "opacity-30" : ""}`} />
                           </Button>
-                          <Badge className="bg-blue-500/15 text-blue-700 dark:text-blue-300 hover:bg-blue-500/20 text-[10px]">Proceso</Badge>
+                          <Badge className="bg-blue-500/15 text-blue-700 dark:text-blue-300 hover:bg-blue-500/20 text-[10px]">{t("levels.process")}</Badge>
                           <Badge variant="secondary" className="font-mono text-[10px]">{p.code}</Badge>
                           <Input value={p.name} onChange={(e) => editProcessName(mi, pi, e.target.value)} className="h-8 flex-1 min-w-[200px]" />
                           {p.detail?.subprocesses.length ? <Badge variant="outline" className="text-[10px]">{p.detail.subprocesses.length} SP</Badge> : null}
@@ -590,10 +590,10 @@ function AiSuggestPage() {
                           )}
                           {canEdit && (
                             <>
-                              <Button size="sm" variant="ghost" onClick={() => addSubprocess(mi, pi)} title="Añadir subproceso" className="h-7 px-2 text-[10px]">
+                              <Button size="sm" variant="ghost" onClick={() => addSubprocess(mi, pi)} title={t("ai.addSubprocess")} className="h-7 px-2 text-[10px]">
                                 <Plus className="h-3 w-3 mr-1" /> SP
                               </Button>
-                              <Button size="sm" variant="ghost" onClick={() => addProcTask(mi, pi)} title="Añadir tarea" className="h-7 px-2 text-[10px]">
+                              <Button size="sm" variant="ghost" onClick={() => addProcTask(mi, pi)} title={t("ai.addTask")} className="h-7 px-2 text-[10px]">
                                 <Plus className="h-3 w-3 mr-1" /> T
                               </Button>
                             </>
@@ -603,7 +603,7 @@ function AiSuggestPage() {
                               <X className="h-3.5 w-3.5" />
                             </Button>
                           )}
-                          <Button size="sm" variant="ghost" onClick={() => deleteProcess(mi, pi)} title="Eliminar" className="text-destructive hover:text-destructive h-7 w-7 p-0">
+                          <Button size="sm" variant="ghost" onClick={() => deleteProcess(mi, pi)} title={t("ai.deleteRow")} className="text-destructive hover:text-destructive h-7 w-7 p-0">
                             <Trash2 className="h-3.5 w-3.5" />
                           </Button>
                         </div>
@@ -620,7 +620,7 @@ function AiSuggestPage() {
                                   <Button size="sm" variant="ghost" onClick={() => toggleSub(spKey)} className="h-7 w-7 p-0" title={subOpen ? "Colapsar" : "Expandir"}>
                                     <ChevronRight className={`h-4 w-4 transition-transform ${subOpen ? "rotate-90" : ""}`} />
                                   </Button>
-                                  <Badge className="bg-amber-500/15 text-amber-700 dark:text-amber-300 hover:bg-amber-500/20 text-[10px]">Subproceso</Badge>
+                                  <Badge className="bg-amber-500/15 text-amber-700 dark:text-amber-300 hover:bg-amber-500/20 text-[10px]">{t("levels.subprocess")}</Badge>
                                   <Badge variant="outline" className="font-mono text-[10px]">{sp.code}</Badge>
                                   <Input
                                     value={sp.name}
@@ -628,15 +628,15 @@ function AiSuggestPage() {
                                     className="h-7 text-sm flex-1 min-w-[180px]"
                                   />
                                   {sp.tasks.length > 0 && <Badge variant="secondary" className="text-[10px]">{sp.tasks.length} T</Badge>}
-                                  <Button size="sm" variant="outline" onClick={() => { detailSubprocess(mi, pi, si); setExpandedSub((s) => new Set(s).add(spKey)); }} disabled={isSpDetailing || !canEdit} title={t("ai.detailSubprocess") ?? "Detallar IA"} className="h-7 w-7 p-0">
+                                  <Button size="sm" variant="outline" onClick={() => { detailSubprocess(mi, pi, si); setExpandedSub((s) => new Set(s).add(spKey)); }} disabled={isSpDetailing || !canEdit} title={t("ai.detailSubprocess")} className="h-7 w-7 p-0">
                                     {isSpDetailing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Wand2 className="h-3.5 w-3.5" />}
                                   </Button>
                                   {canEdit && (
-                                    <Button size="sm" variant="ghost" onClick={() => addSubTask(mi, pi, si)} title="Añadir tarea" className="h-7 px-2 text-[10px]">
+                                    <Button size="sm" variant="ghost" onClick={() => addSubTask(mi, pi, si)} title={t("ai.addTask")} className="h-7 px-2 text-[10px]">
                                       <Plus className="h-3 w-3 mr-1" /> T
                                     </Button>
                                   )}
-                                  <Button size="sm" variant="ghost" onClick={() => deleteSubprocess(mi, pi, si)} title="Eliminar" className="text-destructive hover:text-destructive h-7 w-7 p-0">
+                                  <Button size="sm" variant="ghost" onClick={() => deleteSubprocess(mi, pi, si)} title={t("ai.deleteRow")} className="text-destructive hover:text-destructive h-7 w-7 p-0">
                                     <Trash2 className="h-3.5 w-3.5" />
                                   </Button>
                                 </div>
@@ -699,7 +699,7 @@ function AiSuggestPage() {
                         )}
 
                         {procOpen && p.detail?.subprocesses[0] && expandedSub.has(`${mi}:${pi}:0`) && (
-                          <Textarea value={p.mission} onChange={(e) => editProcessMission(mi, pi, e.target.value)} rows={1} placeholder="Misión del proceso" className="text-xs ml-9" />
+                          <Textarea value={p.mission} onChange={(e) => editProcessMission(mi, pi, e.target.value)} rows={1} placeholder={t("ai.missionPlaceholder")} className="text-xs ml-9" />
                         )}
                       </li>
                     );
@@ -708,7 +708,7 @@ function AiSuggestPage() {
                 {canEdit && (
                   <div className="flex justify-end pt-1">
                     <Button size="sm" variant="ghost" onClick={() => addProcess(mi)}>
-                      <Plus className="h-3.5 w-3.5 mr-1" /> Añadir Proceso
+                      <Plus className="h-3.5 w-3.5 mr-1" /> {t("ai.addProcess")}
                     </Button>
                   </div>
                 )}
@@ -738,6 +738,7 @@ function DbHierarchyDialog({
   entityId: string | null;
   entityName: string | null;
 }) {
+  const { t } = useTranslation();
   const q = useQuery({
     queryKey: ["db-hierarchy", entityId],
     staleTime: STALE.REFERENCE,
@@ -777,21 +778,21 @@ function DbHierarchyDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Estructura jerárquica de procesos</DialogTitle>
+          <DialogTitle>{t("ai.dbDialogTitle")}</DialogTitle>
           <DialogDescription>
-            {entityName ? `Entidad: ${entityName}` : "Todas las entidades"}
+            {entityName ? t("ai.dbDialogEntity", { name: entityName }) : t("ai.dbDialogAllEntities")}
           </DialogDescription>
         </DialogHeader>
         {q.isLoading && (
           <div className="py-8 text-center text-sm text-muted-foreground">
-            <Loader2 className="mx-auto mb-2 h-5 w-5 animate-spin" /> Cargando…
+            <Loader2 className="mx-auto mb-2 h-5 w-5 animate-spin" /> {t("common.loading")}
           </div>
         )}
         {q.error && (
           <div className="py-4 text-sm text-destructive">{(q.error as Error).message}</div>
         )}
         {q.data && q.data.macros.length === 0 && (
-          <p className="py-6 text-center text-sm text-muted-foreground">No hay macroprocesos en esta entidad.</p>
+          <p className="py-6 text-center text-sm text-muted-foreground">{t("ai.dbDialogNoMaps")}</p>
         )}
         {q.data && q.data.macros.length > 0 && (
           <ul className="space-y-1 text-sm">
@@ -809,7 +810,7 @@ function DbHierarchyDialog({
                   </button>
                   {mpOpen && (
                     <ul className="space-y-1 border-t bg-muted/20 px-3 py-2">
-                      {procs.length === 0 && <li className="text-xs italic text-muted-foreground">Sin procesos</li>}
+                      {procs.length === 0 && <li className="text-xs italic text-muted-foreground">{t("ai.dbDialogNoProcesses")}</li>}
                       {procs.map((p) => {
                         const pOpen = openIds.has(p.id);
                         const subs = q.data!.subs.filter((s) => s.parent_id === p.id);

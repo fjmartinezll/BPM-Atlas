@@ -3,7 +3,7 @@ import { createContext, Fragment, useCallback, useContext, useEffect, useMemo, u
 
 import {
   ReactFlow, ReactFlowProvider, Background, Controls, MiniMap, addEdge, applyNodeChanges, applyEdgeChanges, useEdgesState, useNodesState,
-  NodeResizer, getBezierPath, getSmoothStepPath, EdgeLabelRenderer, BaseEdge, useStore,
+  NodeResizer, getBezierPath, getSmoothStepPath, EdgeLabelRenderer, BaseEdge,
   useUpdateNodeInternals,
   type Connection, type Edge, type Node, type NodeProps, type EdgeProps, type EdgeChange,
   Handle, Position, MarkerType,
@@ -66,9 +66,9 @@ type DiagramType =
   | "datos";
 
 const DIAGRAM_TYPES: { id: DiagramType; label: string }[] = [
-  { id: "macroprocesos", label: "Macroprocesos" },
+  { id: "macroprocesos", label: "Mapas de Procesos" },
   { id: "procesos", label: "Procesos" },
-  { id: "workflows", label: "Tareas ejecutables" },
+  { id: "workflows", label: "Acciones Ejecutables" },
 ];
 
 // Which diagram types require an explicit parent association
@@ -733,7 +733,6 @@ function PoolNode({ id, data, selected }: NodeProps) {
   const label = (data as { label: string }).label ?? "";
   const role = (data as { role?: string }).role ?? ""; void role;
   const entityId = (data as { entity_id?: string | null }).entity_id ?? "";
-  const positionId = (data as { position_id?: string | null }).position_id ?? "";
   const kind = (data as { kind: BpmnKind | "subContainer" }).kind;
   const paletteLabel = (data as { paletteLabel?: string }).paletteLabel;
   const isSubContainer = kind === "subContainer";
@@ -757,38 +756,9 @@ function PoolNode({ id, data, selected }: NodeProps) {
     staleTime: 60_000,
   });
 
-  // Para la lane: averiguar la entidad de su pool padre (reactivo)
-  const parentEntityId = useStore((s) => {
-    if (!isLane) return "";
-    const self = s.nodeLookup.get(id);
-    if (!self?.parentId) return "";
-    const parent = s.nodeLookup.get(self.parentId);
-    return ((parent?.data as { entity_id?: string } | undefined)?.entity_id) ?? "";
-  });
-
-  const positionsQuery = useQuery({
-    queryKey: ["modeler-positions", parentEntityId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("entity_positions")
-        .select("id,name")
-        .eq("entity_id", parentEntityId)
-        .order("sort_order")
-        .order("name");
-      if (error) throw error;
-      return (data ?? []) as { id: string; name: string }[];
-    },
-    enabled: isLane && !!parentEntityId,
-    staleTime: 30_000,
-  });
-
   const onSelectEntity = (val: string) => {
     const ent = entitiesQuery.data?.find((e) => e.id === val);
     dispatch({ entity_id: val, label: ent?.name ?? "" });
-  };
-  const onSelectPosition = (val: string) => {
-    const pos = positionsQuery.data?.find((p) => p.id === val);
-    dispatch({ position_id: val, label: pos?.name ?? "" });
   };
 
   return (
@@ -812,20 +782,12 @@ function PoolNode({ id, data, selected }: NodeProps) {
                   placeholder="Nombre de la entidad…"
                 />
               ) : isLane ? (
-
-                <select
-                  value={positionId}
-                  onChange={(e) => onSelectPosition(e.target.value)}
-                  disabled={!parentEntityId}
-                  className="w-full rounded border bg-background px-2 py-1 text-xs outline-none disabled:opacity-60"
-                >
-                  <option value="">
-                    {parentEntityId ? "— Selecciona cargo —" : "Selecciona entidad en el pool"}
-                  </option>
-                  {(positionsQuery.data ?? []).map((p) => (
-                    <option key={p.id} value={p.id}>{p.name}</option>
-                  ))}
-                </select>
+                <input
+                  value={label}
+                  onChange={(e) => dispatch({ label: e.target.value })}
+                  className="w-full rounded border bg-background px-2 py-1 text-xs outline-none"
+                  placeholder="Nombre de la calle…"
+                />
               ) : (
                 <input
                   value={label}
@@ -1206,14 +1168,6 @@ function NodeNameField({
   const isEntityPool = d.kind === "pool" && d.paletteLabel !== "Subproceso";
   const isLane = d.kind === "lane";
 
-  const parentEntityId = useMemo(() => {
-    if (!isLane) return "";
-    const parentId = selectedNode.parentId;
-    if (!parentId) return "";
-    const parent = nodes.find((n) => n.id === parentId);
-    return ((parent?.data as { entity_id?: string } | undefined)?.entity_id) ?? "";
-  }, [isLane, selectedNode.parentId, nodes]);
-
   const entitiesQuery = useQuery({
     queryKey: ["modeler-entities"],
     queryFn: async () => {
@@ -1223,22 +1177,6 @@ function NodeNameField({
     },
     enabled: isEntityPool,
     staleTime: 60_000,
-  });
-
-  const positionsQuery = useQuery({
-    queryKey: ["modeler-positions", parentEntityId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("entity_positions")
-        .select("id,name")
-        .eq("entity_id", parentEntityId)
-        .order("sort_order")
-        .order("name");
-      if (error) throw error;
-      return (data ?? []) as { id: string; name: string }[];
-    },
-    enabled: isLane && !!parentEntityId,
-    staleTime: 30_000,
   });
 
   if (isEntityPool) {
@@ -1256,23 +1194,13 @@ function NodeNameField({
 
   if (isLane) {
     return (
-      <select
-        value={d.position_id ?? ""}
-        disabled={!parentEntityId}
-        onChange={(e) => {
-          const val = e.target.value;
-          const pos = positionsQuery.data?.find((x) => x.id === val);
-          onChange({ position_id: val || null, label: pos?.name ?? "" });
-        }}
-        className="h-8 w-full rounded-md border bg-background px-2 text-xs outline-none focus:ring-1 focus:ring-primary disabled:opacity-60"
-      >
-        <option value="">
-          {parentEntityId ? "— Selecciona cargo —" : "Selecciona entidad en el pool"}
-        </option>
-        {(positionsQuery.data ?? []).map((p) => (
-          <option key={p.id} value={p.id}>{p.name}</option>
-        ))}
-      </select>
+      <Input
+        value={d.label ?? ""}
+        onChange={(e) => onChange({ label: e.target.value })}
+        className="h-8 text-sm"
+        maxLength={200}
+        placeholder="Nombre de la calle"
+      />
     );
   }
 
@@ -1317,7 +1245,7 @@ function ModelerPage() {
       if (cancelled || !data?.level || !data?.node_id) return;
       navigate({
         to: "/modeler",
-        search: (prev: SearchT) => ({ ...prev, type: "datos", level: data.level as LevelKey, id: data.node_id }),
+        search: (prev: SearchT) => ({ ...prev, type: "datos" as DiagramType, level: data.level as LevelKey, id: data.node_id }),
         replace: true,
       });
     })();
@@ -1815,7 +1743,7 @@ function ModelerPage() {
         .eq("environment", scopeEnvironment)
         .order("updated_at", { ascending: false })
         .limit(50);
-      if (scopeEntityId) q = q.eq("entity_id", scopeEntityId);
+      if (scopeEntityId) q = q.or(`entity_id.eq.${scopeEntityId},entity_id.is.null`);
       const { data, error } = await q;
       if (error) throw error;
       return data ?? [];
@@ -3248,7 +3176,7 @@ function ModelerPage() {
                 onDragStart={(e) => onDragStart(e, item.kind)}
                 className="flex h-10 w-full cursor-grab items-center gap-2 rounded-md text-[11px] font-semibold uppercase tracking-wider text-white shadow-sm hover:opacity-90 active:cursor-grabbing"
                 style={{ background: item.color, paddingLeft: 10, paddingRight: 10 }}
-                title="Banda contenedora — se sitúa detrás de los macroprocesos"
+                title="Banda contenedora — se sitúa detrás de los procesos del mapa"
               >
                 <Icon className="h-4 w-4 shrink-0" />
                 <span className="truncate whitespace-pre-line">{item.label}</span>
@@ -3263,7 +3191,7 @@ function ModelerPage() {
                 onDragStart={(e) => onDragStart(e, item.kind)}
                 className="flex h-16 w-full cursor-grab flex-col items-center justify-center gap-1 rounded-md border-2 border-dashed text-[10px] font-semibold uppercase tracking-wider shadow-sm hover:opacity-90 active:cursor-grabbing"
                 style={{ borderColor: item.color, color: item.color }}
-                title="Columna lateral — se sitúa detrás de los macroprocesos"
+                title="Columna lateral — se sitúa detrás de los procesos del mapa"
               >
                 <Icon className="h-4 w-4" />
                 <span className="px-2 text-center leading-tight whitespace-pre-line">{item.label}</span>
@@ -3284,7 +3212,7 @@ function ModelerPage() {
           );
         })}
         <p className="mt-1 text-[10px] text-muted-foreground">
-          Las bandas y columnas laterales se colocan detrás de los macroprocesos. Selecciona un nodo para redimensionar, renombrar y recolorear.
+          Las bandas y columnas laterales se colocan detrás de los procesos del mapa. Selecciona un nodo para redimensionar, renombrar y recolorear.
         </p>
       </div>
     );
@@ -3401,7 +3329,7 @@ function ModelerPage() {
                 <span className="inline-flex items-center gap-1"><span className="inline-block h-2.5 w-2.5 rounded-full bg-rose-500/80" /> Actual</span>
                 <span className="inline-flex items-center gap-1"><span className="inline-block h-2.5 w-2.5 rounded-full bg-amber-400/80" /> Pendiente</span>
               </div>
-              <Link to="/engine">
+              <Link to="/engine" search={{ drafts: undefined, tab: undefined }}>
                 <Button variant="outline" size="sm">Ir al motor</Button>
               </Link>
             </>
@@ -3701,7 +3629,9 @@ function ModelerPage() {
 
 
           <div>
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t("modeler.palette")}</h3>
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              {diagramType === "macroprocesos" ? "PALETA DE MACROPROCESOS" : diagramType === "procesos" ? "PALETA DE PROCESOS" : diagramType === "workflows" ? "ACCIONES EJECUTABLES" : t("modeler.palette")}
+            </h3>
             
           </div>
 
@@ -3721,13 +3651,13 @@ function ModelerPage() {
                 .slice()
                 .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base", numeric: true }))
                 .map((d) => (
-                  <li key={d.id} className="group flex items-center justify-between rounded hover:bg-muted">
+                  <li key={d.id} className={`group flex items-center justify-between rounded hover:bg-muted ${d.id === diagramId ? "bg-primary/10 font-semibold" : ""}`}>
                     <button
                       type="button"
                       onClick={() =>
                         navigate({
                           to: "/modeler",
-                          search: (prev: SearchT) => ({ ...prev, level: d.level, id: d.node_id, type: d.diagram_type }),
+                          search: (prev: SearchT) => ({ ...prev, level: d.level as LevelKey, id: d.node_id, type: d.diagram_type as DiagramType }),
                         })
                       }
                       className="block flex-1 truncate px-2 py-1 text-left text-xs"
@@ -4035,7 +3965,8 @@ function ModelerPage() {
                     })()}
                     {(() => {
                       const nodeKind = (selectedNode.data as { kind?: string }).kind ?? "";
-                      if (!["task", "start", "intermediate", "end", "gateway", "subprocess", "subContainer", "phase", "pool", "lane"].includes(nodeKind)) return null;
+                      const isMacro = nodeKind.startsWith("macro.");
+                      if (!["task", "start", "intermediate", "end", "gateway", "subprocess", "subContainer", "phase", "pool", "lane"].includes(nodeKind) && !isMacro) return null;
                       const description = (selectedNode.data as { description?: string }).description ?? "";
                       return (
                         <div className="space-y-1">
@@ -4045,7 +3976,7 @@ function ModelerPage() {
                             onChange={(e) => updateSelectedNodeData({ description: e.target.value })}
                             className="min-h-[70px] w-full resize-y rounded-md border bg-background px-2 py-1.5 text-sm outline-none focus:ring-1 focus:ring-primary"
                             maxLength={2000}
-                            placeholder="Describe qué debe hacer este nodo…"
+                            placeholder="Describe qué hace este elemento…"
                           />
                         </div>
                       );
@@ -4053,7 +3984,7 @@ function ModelerPage() {
 
                     {(() => {
                       const nodeKind = (selectedNode.data as { kind?: string }).kind ?? "";
-                      if (nodeKind === "lane" || nodeKind === "pool" || nodeKind === "subContainer" || nodeKind === "phase") return null;
+                      if (nodeKind === "lane" || nodeKind === "pool" || nodeKind === "subContainer" || nodeKind === "phase" || nodeKind.startsWith("macro.")) return null;
 
                       const tax = taxonomyQuery.data;
                       const kindRow = tax?.kinds.find((k) => k.code === nodeKind);

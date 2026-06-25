@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState, useCallback } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
+import { useTranslation } from "react-i18next";
 import { getTableColumns, getTableStats, runReadOnlySql, type ColumnInfo, type TableStat, type SqlResult } from "@/lib/db-admin.functions";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -26,7 +27,7 @@ const TABLES = [
 type TableName = typeof TABLES[number];
 
 const TABLE_DISPLAY: Record<string, string> = {
-  macroprocesses: "Macroprocesos",
+  macroprocesses: "Mapas de Procesos",
   processes: "Procesos",
   subprocesses: "Subprocesos",
   executable_elements: "Elementos ejecutables",
@@ -94,6 +95,7 @@ function parseValue(c: ColumnInfo, raw: string | boolean | null): any {
 }
 
 function Page() {
+  const { t } = useTranslation();
   const { isAdmin, loading } = useAuth();
   const fetchCols = useServerFn(getTableColumns);
 
@@ -177,11 +179,11 @@ function Page() {
         for (const pk of pkCols) q = q.eq(pk, editing[pk]);
         const { error } = await q;
         if (error) throw new Error(error.message);
-        toast.success("Registro actualizado");
+        toast.success(t("database.recordUpdated"));
       } else {
         const { error } = await supabase.from(table as any).insert(payload);
         if (error) throw new Error(error.message);
-        toast.success("Registro creado");
+        toast.success(t("database.recordCreated"));
       }
       setDialogOpen(false);
       void load();
@@ -191,14 +193,14 @@ function Page() {
   };
 
   const remove = async (row: any) => {
-    if (!pkCols.length) { toast.error("Esta tabla no tiene clave primaria; no se puede borrar."); return; }
-    if (!confirm("¿Borrar este registro? Esta acción no se puede deshacer.")) return;
+    if (!pkCols.length) { toast.error(t("database.noPkError")); return; }
+    if (!confirm(t("database.confirmDelete"))) return;
     try {
       let q = supabase.from(table as any).delete();
       for (const pk of pkCols) q = q.eq(pk, row[pk]);
       const { error } = await q;
       if (error) throw new Error(error.message);
-      toast.success("Registro borrado");
+      toast.success(t("database.recordDeleted"));
       void load();
     } catch (e: any) {
       toast.error(e.message ?? String(e));
@@ -211,24 +213,24 @@ function Page() {
     return rows.filter((r) => Object.values(r).some((v) => toInputString(v).toLowerCase().includes(q)));
   }, [rows, search]);
 
-  if (loading) return <div className="p-6">Cargando…</div>;
-  if (!isAdmin) return <div className="p-6">Solo los administradores pueden gestionar la base de datos.</div>;
+  if (loading) return <div className="p-6">{t("database.loading")}</div>;
+  if (!isAdmin) return <div className="p-6">{t("database.adminOnly")}</div>;
 
   return (
     <div className="p-6 space-y-4">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold">Mantenimiento de base de datos</h1>
-          <p className="text-sm text-muted-foreground">Consulta, crea, edita y borra registros, explora el modelo relacional o ejecuta consultas SQL de solo lectura.</p>
+          <h1 className="text-2xl font-semibold">{t("database.title")}</h1>
+          <p className="text-sm text-muted-foreground">{t("database.description")}</p>
         </div>
         <BackendInfoButton />
       </div>
 
       <Tabs defaultValue="editor" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="editor">Editor de registros</TabsTrigger>
-          <TabsTrigger value="schema">Diagrama de relaciones</TabsTrigger>
-          <TabsTrigger value="sql">Esquema (SQL)</TabsTrigger>
+          <TabsTrigger value="editor">{t("database.editorTab")}</TabsTrigger>
+          <TabsTrigger value="schema">{t("database.schemaTab")}</TabsTrigger>
+          <TabsTrigger value="sql">{t("database.sqlTab")}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="schema" className="space-y-4">
@@ -243,10 +245,10 @@ function Page() {
         <TabsContent value="editor" className="space-y-4">
       <div className="flex items-center justify-end gap-2">
         <Button variant="outline" size="sm" onClick={() => void load()} disabled={busy}>
-          <RefreshCw className="h-4 w-4 mr-1" /> Recargar
+          <RefreshCw className="h-4 w-4 mr-1" /> {t("database.refresh")}
         </Button>
         <Button size="sm" onClick={() => void openNew()} disabled={busy}>
-          <Plus className="h-4 w-4 mr-1" /> Nuevo registro
+          <Plus className="h-4 w-4 mr-1" /> {t("database.newRecord")}
         </Button>
       </div>
 
@@ -261,7 +263,7 @@ function Page() {
       </div>
 
       <Input
-        placeholder="Filtrar filas…"
+        placeholder={t("database.filterPlaceholder")}
         value={search}
         onChange={(e) => setSearch(e.target.value)}
         className="max-w-sm"
@@ -269,16 +271,16 @@ function Page() {
 
       <Card className="p-0 overflow-auto">
         {busy ? (
-          <div className="p-4">Cargando…</div>
+          <div className="p-4">{t("database.loading")}</div>
         ) : error ? (
           <div className="p-4 text-destructive">{error}</div>
         ) : !columns.length ? (
-          <div className="p-4 text-muted-foreground">Sin columnas.</div>
+          <div className="p-4 text-muted-foreground">{t("database.noColumns")}</div>
         ) : (
           <table className="text-xs w-full">
             <thead className="bg-muted/50 sticky top-0">
               <tr className="border-b">
-                <th className="p-2 text-left w-24">Acciones</th>
+                <th className="p-2 text-left w-24">{t("database.actions")}</th>
                 {columns.map((c) => (
                   <th key={c.name} className="text-left p-2 font-medium whitespace-nowrap">
                     {c.name}
@@ -292,10 +294,10 @@ function Page() {
                 <tr key={i} className="border-b align-top hover:bg-muted/30">
                   <td className="p-2">
                     <div className="flex gap-1">
-                      <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => openEdit(r)} aria-label="Editar">
+                      <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => openEdit(r)} aria-label={t("database.actions")}>
                         <Pencil className="h-3.5 w-3.5" />
                       </Button>
-                      <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => void remove(r)} aria-label="Eliminar">
+                      <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => void remove(r)} aria-label={t("database.actions")}>
                         <Trash2 className="h-3.5 w-3.5" />
                       </Button>
                     </div>
@@ -308,18 +310,18 @@ function Page() {
                 </tr>
               ))}
               {!filteredRows.length && (
-                <tr><td colSpan={columns.length + 1} className="p-4 text-muted-foreground text-center">Sin filas.</td></tr>
+                <tr><td colSpan={columns.length + 1} className="p-4 text-muted-foreground text-center">{t("database.noRows")}</td></tr>
               )}
             </tbody>
           </table>
         )}
       </Card>
-      <div className="text-xs text-muted-foreground">{filteredRows.length} de {rows.length} fila(s) · máx. 500</div>
+      <div className="text-xs text-muted-foreground">{t("database.rowsCountOf", { filtered: filteredRows.length, total: rows.length })}</div>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{editing ? "Editar registro" : "Nuevo registro"} · {TABLE_DISPLAY[table] ?? table}</DialogTitle>
+            <DialogTitle>{editing ? t("database.editRecord") : t("database.newRecordDialog")} · {TABLE_DISPLAY[table] ?? table}</DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
             {columns.map((c) => {
@@ -335,7 +337,7 @@ function Page() {
                   <Label className="text-xs">
                     {c.name}
                     <span className="ml-1 text-muted-foreground font-normal">
-                      ({c.udt_name}{c.is_nullable ? "" : " · requerido"}{isPk ? " · PK" : ""})
+                      ({c.udt_name}{c.is_nullable ? "" : " · req."}{isPk ? " · PK" : ""})
                     </span>
                   </Label>
                   {isBoolType(c) ? (
@@ -362,7 +364,7 @@ function Page() {
                       disabled={disabled}
                       value={toInputString(value)}
                       onChange={(e) => setForm((f) => ({ ...f, [c.name]: e.target.value }))}
-                      placeholder="YYYY-MM-DD HH:MM:SS o vacío"
+                      placeholder={"YYYY-MM-DD HH:MM:SS " + (t("common.orEmpty") ?? "o vacío")}
                     />
                   ) : (
                     <Input
@@ -377,8 +379,8 @@ function Page() {
             })}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
-            <Button onClick={() => void save()}>{editing ? "Guardar cambios" : "Crear"}</Button>
+            <Button variant="outline" onClick={() => setDialogOpen(false)}>{t("database.cancel")}</Button>
+            <Button onClick={() => void save()}>{editing ? t("database.saveChanges") : t("database.create")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -389,43 +391,43 @@ function Page() {
 }
 
 function BackendInfoButton() {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   return (
     <>
       <Button variant="outline" size="sm" onClick={() => setOpen(true)}>
-        <Info className="h-4 w-4 mr-1" /> ¿Cómo acceder al backend?
+        <Info className="h-4 w-4 mr-1" /> {t("database.howAccessBackend")}
       </Button>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>Backend de la aplicación</DialogTitle>
+            <DialogTitle>{t("database.backendTitle")}</DialogTitle>
             <DialogDescription>
-              Esta aplicación funciona sobre <strong>Lovable Cloud</strong>, el backend gestionado de Lovable.
-              No necesitas una cuenta externa: base de datos, autenticación, almacenamiento y secretos se administran desde el propio panel de Lovable.
+              {t("database.backendDesc")}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3 text-sm">
             <div className="rounded-md border p-3 space-y-1">
-              <p className="font-medium flex items-center gap-2"><Database className="h-4 w-4" /> Ver tablas, políticas y usuarios</p>
+              <p className="font-medium flex items-center gap-2"><Database className="h-4 w-4" /> {t("database.backendViewTables")}</p>
               <p className="text-muted-foreground">
-                Abre el panel lateral de Lovable y entra en <strong>Cloud</strong> para inspeccionar tablas, políticas RLS, usuarios autenticados, archivos y logs.
+                {t("database.backendViewTablesDesc")}
               </p>
             </div>
             <div className="rounded-md border p-3 space-y-1">
-              <p className="font-medium">Cambios de esquema (nuevas tablas, columnas, índices, RLS)</p>
+              <p className="font-medium">{t("database.backendSchemaChanges")}</p>
               <p className="text-muted-foreground">
-                Pídelos en el chat de Lovable. Se aplicarán como migraciones versionadas y revisables, no editando la base de datos directamente.
+                {t("database.backendSchemaChangesDesc")}
               </p>
             </div>
             <div className="rounded-md border p-3 space-y-1">
-              <p className="font-medium">Inspección rápida desde aquí</p>
+              <p className="font-medium">{t("database.backendQuickInspect")}</p>
               <p className="text-muted-foreground">
-                Usa la pestaña <strong>Esquema (SQL)</strong> para listar tablas con su tamaño y ejecutar consultas <code>SELECT</code> en modo solo lectura.
+                {t("database.backendQuickInspectDesc")}
               </p>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setOpen(false)}>Cerrar</Button>
+            <Button variant="outline" onClick={() => setOpen(false)}>{t("database.close")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -434,6 +436,7 @@ function BackendInfoButton() {
 }
 
 function SchemaSqlPanel() {
+  const { t } = useTranslation();
   const fetchStats = useServerFn(getTableStats);
   const fetchCols = useServerFn(getTableColumns);
   const runSql = useServerFn(runReadOnlySql);
@@ -517,20 +520,20 @@ function SchemaSqlPanel() {
       <Card className="p-4 space-y-3">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="font-medium">Tablas del esquema <code>public</code></h3>
-            <p className="text-xs text-muted-foreground">Tamaño total en disco y estimación de filas (puede no ser exacto si la tabla no ha sido analizada recientemente).</p>
+            <h3 className="font-medium">{t("database.schemaTables")}</h3>
+            <p className="text-xs text-muted-foreground">{t("database.schemaTablesDesc")}</p>
           </div>
           <Button size="sm" variant="outline" onClick={() => void loadStats()} disabled={loadingStats}>
-            <RefreshCw className="h-4 w-4 mr-1" /> Recargar
+            <RefreshCw className="h-4 w-4 mr-1" /> {t("database.refresh")}
           </Button>
         </div>
         <div className="overflow-auto">
           <table className="text-xs w-full">
             <thead className="bg-muted/50">
               <tr className="border-b">
-                <th className="text-left p-2">Tabla</th>
-                <th className="text-right p-2">Filas (est.)</th>
-                <th className="text-right p-2">Tamaño</th>
+                <th className="text-left p-2">{t("database.tableName")}</th>
+                <th className="text-right p-2">{t("database.rowEstimate")}</th>
+                <th className="text-right p-2">{t("database.size")}</th>
               </tr>
             </thead>
             <tbody>
@@ -542,7 +545,7 @@ function SchemaSqlPanel() {
                 </tr>
               ))}
               {!stats.length && !loadingStats && (
-                <tr><td colSpan={3} className="p-4 text-center text-muted-foreground">Sin datos.</td></tr>
+                <tr><td colSpan={3} className="p-4 text-center text-muted-foreground">{t("database.noData")}</td></tr>
               )}
             </tbody>
           </table>
@@ -551,16 +554,16 @@ function SchemaSqlPanel() {
 
       <Card className="p-4 space-y-3">
         <div>
-          <h3 className="font-medium">Ejecutar consulta SQL (solo lectura)</h3>
+          <h3 className="font-medium">{t("database.sqlExecute")}</h3>
           <p className="text-xs text-muted-foreground">
-            Solo se permiten <code>SELECT</code> y <code>WITH</code>. Resultados limitados a 500 filas. Para cambios de datos usa el editor de registros; para cambios de esquema, pídelos en el chat de Lovable.
+            {t("database.sqlExecuteDesc")}
           </p>
         </div>
 
         <div className="rounded-md border p-3 space-y-3 bg-muted/20">
           <div className="flex flex-wrap items-end gap-3">
             <div className="space-y-1">
-              <Label className="text-xs">Tabla</Label>
+              <Label className="text-xs">{t("database.table")}</Label>
               <select
                 className="h-9 rounded-md border bg-background px-2 text-xs"
                 value={builderTable}
@@ -581,14 +584,14 @@ function SchemaSqlPanel() {
               />
             </div>
             <div className="flex gap-2 ml-auto">
-              <Button size="sm" variant="outline" onClick={selectAll} disabled={loadingCols}>Todas</Button>
-              <Button size="sm" variant="outline" onClick={selectNone} disabled={loadingCols}>Ninguna</Button>
+              <Button size="sm" variant="outline" onClick={selectAll} disabled={loadingCols}>{t("database.all")}</Button>
+              <Button size="sm" variant="outline" onClick={selectNone} disabled={loadingCols}>{t("database.none")}</Button>
             </div>
           </div>
           <div>
-            <Label className="text-xs mb-1 block">Columnas ({selectedCols.size}/{builderCols.length})</Label>
+            <Label className="text-xs mb-1 block">{t("database.columns")} ({selectedCols.size}/{builderCols.length})</Label>
             {loadingCols ? (
-              <div className="text-xs text-muted-foreground">Cargando esquema…</div>
+              <div className="text-xs text-muted-foreground">{t("database.loadingSchema")}</div>
             ) : (
               <div className="flex flex-wrap gap-x-4 gap-y-2 max-h-40 overflow-auto">
                 {builderCols.map((c) => (
@@ -601,7 +604,7 @@ function SchemaSqlPanel() {
                     <span className="text-muted-foreground">({c.udt_name}{c.is_primary_key ? " · PK" : ""})</span>
                   </label>
                 ))}
-                {!builderCols.length && <div className="text-xs text-muted-foreground">Sin columnas.</div>}
+                {!builderCols.length && <div className="text-xs text-muted-foreground">{t("database.noColumns")}</div>}
               </div>
             )}
           </div>
@@ -616,7 +619,7 @@ function SchemaSqlPanel() {
         />
         <div className="flex justify-end">
           <Button size="sm" onClick={() => void execute()} disabled={running || !sql.trim()}>
-            <Play className="h-4 w-4 mr-1" /> Ejecutar
+            <Play className="h-4 w-4 mr-1" /> {t("database.run")}
           </Button>
         </div>
         {runError && <div className="text-sm text-destructive">{runError}</div>}
@@ -639,13 +642,13 @@ function SchemaSqlPanel() {
                   </tr>
                 ))}
                 {!result.rows.length && (
-                  <tr><td colSpan={result.columns.length || 1} className="p-4 text-center text-muted-foreground">Sin resultados.</td></tr>
+                  <tr><td colSpan={result.columns.length || 1} className="p-4 text-center text-muted-foreground">{t("database.noResults")}</td></tr>
                 )}
               </tbody>
             </table>
           </div>
         )}
-        {result && <div className="text-xs text-muted-foreground">{result.rows.length} fila(s)</div>}
+        {result && <div className="text-xs text-muted-foreground">{t("database.rowsCount", { count: result.rows.length })}</div>}
       </Card>
     </div>
   );

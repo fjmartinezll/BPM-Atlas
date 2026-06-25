@@ -41,9 +41,9 @@ function AdminPage() {
   const { isAdmin } = useAuth();
   const { t } = useTranslation();
   const { tab } = Route.useSearch();
-  const navigate = useNavigate({ from: "/admin" });
-  const setTab = (t: (typeof ALL_TABS)[number]) =>
-    navigate({ search: (prev: { tab: typeof t }) => ({ ...prev, tab: t }) });
+  const navigate = useNavigate({ from: "/admin/" });
+  const setTab = (tabKey: (typeof ALL_TABS)[number]) =>
+    navigate({ search: (prev: { tab: typeof tabKey }) => ({ ...prev, tab: tabKey }) });
 
   if (!isAdmin) {
     return (

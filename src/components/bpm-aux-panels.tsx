@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { STALE } from "@/lib/query-keys";
@@ -22,13 +23,14 @@ const sb = supabase as any;
 type Props = { level: LevelKey; id: string };
 
 export function BpmAuxPanels({ level, id }: Props) {
+  const { t } = useTranslation();
   return (
     <Tabs defaultValue="indicators" className="w-full">
       <TabsList>
-        <TabsTrigger value="indicators">Indicadores</TabsTrigger>
-        <TabsTrigger value="risks">Riesgos</TabsTrigger>
-        <TabsTrigger value="documents">Documentos</TabsTrigger>
-        <TabsTrigger value="entities">Entidades vinculadas</TabsTrigger>
+        <TabsTrigger value="indicators">{t("bpmnPanel.indicators")}</TabsTrigger>
+        <TabsTrigger value="risks">{t("bpmnPanel.risks")}</TabsTrigger>
+        <TabsTrigger value="documents">{t("bpmnPanel.documents")}</TabsTrigger>
+        <TabsTrigger value="entities">{t("bpmnPanel.entityLinks")}</TabsTrigger>
       </TabsList>
       <TabsContent value="indicators"><IndicatorsPanel level={level} id={id} /></TabsContent>
       <TabsContent value="risks"><RisksPanel level={level} id={id} /></TabsContent>
@@ -55,19 +57,21 @@ const toPayload = (f: IndicatorForm) => ({
 });
 
 function IndicatorFormFields({ form, setForm }: { form: IndicatorForm; setForm: (f: IndicatorForm) => void }) {
+  const { t } = useTranslation();
   return (
     <div className="grid grid-cols-2 gap-2 md:grid-cols-6">
-      <Input placeholder="Código" value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} />
-      <Input required placeholder="Nombre" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="md:col-span-2" />
-      <Input placeholder="Unidad" value={form.unit} onChange={(e) => setForm({ ...form, unit: e.target.value })} />
-      <Input placeholder="Meta" type="number" step="any" value={form.target_value} onChange={(e) => setForm({ ...form, target_value: e.target.value })} />
-      <Input placeholder="Frecuencia" value={form.frequency} onChange={(e) => setForm({ ...form, frequency: e.target.value })} />
-      <Textarea placeholder="Fórmula" value={form.formula} onChange={(e) => setForm({ ...form, formula: e.target.value })} className="md:col-span-6" rows={2} />
+      <Input placeholder={t("fields.code")} value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} />
+      <Input required placeholder={t("fields.name")} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="md:col-span-2" />
+      <Input placeholder={t("bpmnPanel.unit")} value={form.unit} onChange={(e) => setForm({ ...form, unit: e.target.value })} />
+      <Input placeholder={t("bpmnPanel.target")} type="number" step="any" value={form.target_value} onChange={(e) => setForm({ ...form, target_value: e.target.value })} />
+      <Input placeholder={t("bpmnPanel.frequency")} value={form.frequency} onChange={(e) => setForm({ ...form, frequency: e.target.value })} />
+      <Textarea placeholder={t("bpmnPanel.formula")} value={form.formula} onChange={(e) => setForm({ ...form, formula: e.target.value })} className="md:col-span-6" rows={2} />
     </div>
   );
 }
 
 function IndicatorsPanel({ level, id }: Props) {
+  const { t } = useTranslation();
   const { canEdit } = useAuth();
   const qc = useQueryClient();
   const key = ["indicators", level, id];
@@ -85,28 +89,28 @@ function IndicatorsPanel({ level, id }: Props) {
 
   const add = async (e: FormEvent) => {
     e.preventDefault();
-    if (!form.name.trim()) return toast.error("El nombre es obligatorio");
+    if (!form.name.trim()) return toast.error(t("bpmnPanel.nameRequired"));
     const { error } = await sb.from("process_indicators").insert({ target_level: level, target_id: id, ...toPayload(form) });
     if (error) return toast.error(error.message);
     setForm(emptyIndicator);
-    toast.success("Indicador añadido");
+    toast.success(t("bpmnPanel.indicatorAdded"));
     qc.invalidateQueries({ queryKey: key });
   };
   const openEdit = (r: Indicator) => { setEditing(r); setEditForm(toForm(r)); };
   const saveEdit = async (e: FormEvent) => {
     e.preventDefault();
     if (!editing) return;
-    if (!editForm.name.trim()) return toast.error("El nombre es obligatorio");
+    if (!editForm.name.trim()) return toast.error(t("bpmnPanel.nameRequired"));
     const { error } = await sb.from("process_indicators").update(toPayload(editForm)).eq("id", editing.id);
     if (error) return toast.error(error.message);
     setEditing(null);
-    toast.success("Indicador actualizado");
+    toast.success(t("bpmnPanel.indicatorUpdated"));
     qc.invalidateQueries({ queryKey: key });
   };
   const remove = async (rid: string) => {
     const { error } = await sb.from("process_indicators").delete().eq("id", rid);
     if (error) return toast.error(error.message);
-    toast.success("Indicador eliminado");
+    toast.success(t("bpmnPanel.indicatorDeleted"));
     qc.invalidateQueries({ queryKey: key });
   };
 
@@ -120,26 +124,26 @@ function IndicatorsPanel({ level, id }: Props) {
                 {r.code && <Badge variant="outline" className="font-mono text-[10px]">{r.code}</Badge>}
                 <span className="font-medium">{r.name}</span>
                 {r.unit && <span className="text-xs text-muted-foreground">{r.unit}</span>}
-                {r.target_value != null && <span className="text-xs">Meta: {r.target_value}</span>}
+                {r.target_value != null && <span className="text-xs">{t("bpmnPanel.metaLabel")} {r.target_value}</span>}
                 {r.frequency && <span className="text-xs text-muted-foreground">· {r.frequency}</span>}
               </div>
               {r.formula && <p className="text-xs text-muted-foreground">{r.formula}</p>}
             </div>
             {canEdit && (
               <div className="flex gap-1">
-                <Button size="icon" variant="ghost" onClick={() => openEdit(r)} aria-label="Editar"><Pencil className="h-4 w-4" /></Button>
+                <Button size="icon" variant="ghost" onClick={() => openEdit(r)} aria-label={t("bpmnPanel.editLabel")}><Pencil className="h-4 w-4" /></Button>
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
-                    <Button size="icon" variant="ghost" aria-label="Eliminar"><Trash2 className="h-4 w-4" /></Button>
+                    <Button size="icon" variant="ghost" aria-label={t("bpmnPanel.deleteLabel")}><Trash2 className="h-4 w-4" /></Button>
                   </AlertDialogTrigger>
                   <AlertDialogContent>
                     <AlertDialogHeader>
-                      <AlertDialogTitle>¿Eliminar indicador?</AlertDialogTitle>
-                      <AlertDialogDescription>Esta acción no se puede deshacer. Se eliminará «{r.name}».</AlertDialogDescription>
+                      <AlertDialogTitle>{t("bpmnPanel.deleteIndicatorTitle")}</AlertDialogTitle>
+                      <AlertDialogDescription>{t("bpmnPanel.cannotUndo")} Se eliminará «{r.name}».</AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                      <AlertDialogAction onClick={() => remove(r.id)}>Eliminar</AlertDialogAction>
+                      <AlertDialogCancel>{t("bpmnPanel.cancel")}</AlertDialogCancel>
+                      <AlertDialogAction onClick={() => remove(r.id)}>{t("bpmnPanel.deleteLabel")}</AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>
                 </AlertDialog>
@@ -147,25 +151,25 @@ function IndicatorsPanel({ level, id }: Props) {
             )}
           </li>
         ))}
-        {!q.isLoading && (q.data ?? []).length === 0 && <li className="px-3 py-4 text-sm text-muted-foreground">Sin indicadores.</li>}
+        {!q.isLoading && (q.data ?? []).length === 0 && <li className="px-3 py-4 text-sm text-muted-foreground">{t("bpmnPanel.noIndicators")}</li>}
       </ul>
       {canEdit && (
         <form onSubmit={add} className="space-y-2 rounded-md border bg-muted/30 p-3">
           <IndicatorFormFields form={form} setForm={setForm} />
           <div className="flex justify-end">
-            <Button type="submit"><Plus className="mr-1 h-4 w-4" /> Añadir indicador</Button>
+            <Button type="submit"><Plus className="mr-1 h-4 w-4" /> {t("bpmnPanel.addIndicator")}</Button>
           </div>
         </form>
       )}
 
       <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
         <DialogContent className="max-w-2xl">
-          <DialogHeader><DialogTitle>Editar indicador</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{t("bpmnPanel.editIndicator")}</DialogTitle></DialogHeader>
           <form onSubmit={saveEdit} className="space-y-4">
             <IndicatorFormFields form={editForm} setForm={setEditForm} />
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setEditing(null)}>Cancelar</Button>
-              <Button type="submit">Guardar</Button>
+              <Button type="button" variant="outline" onClick={() => setEditing(null)}>{t("bpmnPanel.cancel")}</Button>
+              <Button type="submit">{t("bpmnPanel.save")}</Button>
             </DialogFooter>
           </form>
         </DialogContent>
@@ -177,6 +181,7 @@ function IndicatorsPanel({ level, id }: Props) {
 // ---------------- Risks ----------------
 type Risk = { id: string; code: string | null; description: string; probability: number; impact: number; control: string | null };
 function RisksPanel({ level, id }: Props) {
+  const { t } = useTranslation();
   const { canEdit } = useAuth();
   const qc = useQueryClient();
   const key = ["risks", level, id];
@@ -220,37 +225,37 @@ function RisksPanel({ level, id }: Props) {
                 <span className="font-medium">{r.description}</span>
                 <Badge variant={sev(r.probability, r.impact)}>P{r.probability}·I{r.impact} = {r.probability * r.impact}</Badge>
               </div>
-              {r.control && <p className="text-xs text-muted-foreground">Control: {r.control}</p>}
+              {r.control && <p className="text-xs text-muted-foreground">{t("bpmnPanel.control")}: {r.control}</p>}
             </div>
             {canEdit && (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button size="icon" variant="ghost" aria-label="Eliminar riesgo"><Trash2 className="h-4 w-4" /></Button>
+                  <Button size="icon" variant="ghost" aria-label={t("bpmnPanel.deleteLabel")}><Trash2 className="h-4 w-4" /></Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
-                    <AlertDialogTitle>¿Eliminar riesgo?</AlertDialogTitle>
-                    <AlertDialogDescription>Esta acción no se puede deshacer. Se eliminará «{r.description}».</AlertDialogDescription>
+                    <AlertDialogTitle>{t("bpmnPanel.deleteRiskTitle")}</AlertDialogTitle>
+                    <AlertDialogDescription>{t("bpmnPanel.cannotUndo")} Se eliminará «{r.description}».</AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                    <AlertDialogAction onClick={() => remove(r.id)}>Eliminar</AlertDialogAction>
+                    <AlertDialogCancel>{t("bpmnPanel.cancel")}</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => remove(r.id)}>{t("bpmnPanel.deleteLabel")}</AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
             )}
           </li>
         ))}
-        {!q.isLoading && (q.data ?? []).length === 0 && <li className="px-3 py-4 text-sm text-muted-foreground">Sin riesgos.</li>}
+        {!q.isLoading && (q.data ?? []).length === 0 && <li className="px-3 py-4 text-sm text-muted-foreground">{t("bpmnPanel.noRisks")}</li>}
       </ul>
       {canEdit && (
         <form onSubmit={add} className="grid grid-cols-2 gap-2 rounded-md border bg-muted/30 p-3 md:grid-cols-6">
-          <Input placeholder="Código" value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} />
-          <Input required placeholder="Descripción" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="md:col-span-3" />
-          <Input type="number" min={1} max={5} value={form.probability} onChange={(e) => setForm({ ...form, probability: Number(e.target.value) })} title="Probabilidad 1-5" />
-          <Input type="number" min={1} max={5} value={form.impact} onChange={(e) => setForm({ ...form, impact: Number(e.target.value) })} title="Impacto 1-5" />
-          <Textarea placeholder="Control" value={form.control} onChange={(e) => setForm({ ...form, control: e.target.value })} className="md:col-span-5" rows={1} />
-          <Button type="submit"><Plus className="mr-1 h-4 w-4" /> Añadir</Button>
+          <Input placeholder={t("fields.code")} value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} />
+          <Input required placeholder={t("fields.description")} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="md:col-span-3" />
+          <Input type="number" min={1} max={5} value={form.probability} onChange={(e) => setForm({ ...form, probability: Number(e.target.value) })} title={t("bpmnPanel.probability")} />
+          <Input type="number" min={1} max={5} value={form.impact} onChange={(e) => setForm({ ...form, impact: Number(e.target.value) })} title={t("bpmnPanel.impact")} />
+          <Textarea placeholder={t("bpmnPanel.control")} value={form.control} onChange={(e) => setForm({ ...form, control: e.target.value })} className="md:col-span-5" rows={1} />
+          <Button type="submit"><Plus className="mr-1 h-4 w-4" /> {t("bpmnPanel.addRisk")}</Button>
         </form>
       )}
     </div>
@@ -260,6 +265,7 @@ function RisksPanel({ level, id }: Props) {
 // ---------------- Documents ----------------
 type DocRow = { id: string; name: string; version: string | null; mime_type: string | null; size_bytes: number | null; storage_path: string };
 function DocumentsPanel({ level, id }: Props) {
+  const { t } = useTranslation();
   const { canEdit, user } = useAuth();
   const qc = useQueryClient();
   const key = ["documents", level, id];
@@ -288,7 +294,7 @@ function DocumentsPanel({ level, id }: Props) {
     setUploading(false);
     setVersion("");
     if (error) return toast.error(error.message);
-    toast.success("Documento subido");
+    toast.success(t("bpmnPanel.documentUploaded"));
     qc.invalidateQueries({ queryKey: key });
   };
   const download = async (path: string) => {
@@ -312,20 +318,20 @@ function DocumentsPanel({ level, id }: Props) {
               <div className="text-xs text-muted-foreground">{r.mime_type ?? ""} {r.size_bytes ? `· ${(r.size_bytes / 1024).toFixed(1)} KB` : ""}</div>
             </div>
             <div className="flex gap-1">
-              <Button size="icon" variant="ghost" onClick={() => download(r.storage_path)} aria-label="Descargar"><Download className="h-4 w-4" /></Button>
+              <Button size="icon" variant="ghost" onClick={() => download(r.storage_path)} aria-label={t("bpmnPanel.download")}><Download className="h-4 w-4" /></Button>
               {canEdit && (
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
-                    <Button size="icon" variant="ghost" aria-label="Eliminar documento"><Trash2 className="h-4 w-4" /></Button>
+                    <Button size="icon" variant="ghost" aria-label={t("bpmnPanel.deleteLabel")}><Trash2 className="h-4 w-4" /></Button>
                   </AlertDialogTrigger>
                   <AlertDialogContent>
                     <AlertDialogHeader>
-                      <AlertDialogTitle>¿Eliminar documento?</AlertDialogTitle>
-                      <AlertDialogDescription>Esta acción no se puede deshacer. Se eliminará «{r.name}» y su archivo asociado.</AlertDialogDescription>
+                      <AlertDialogTitle>{t("bpmnPanel.deleteDocumentTitle")}</AlertDialogTitle>
+                      <AlertDialogDescription>{t("bpmnPanel.deleteDocumentDesc", { name: r.name })}</AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                      <AlertDialogAction onClick={() => remove(r)}>Eliminar</AlertDialogAction>
+                      <AlertDialogCancel>{t("bpmnPanel.cancel")}</AlertDialogCancel>
+                      <AlertDialogAction onClick={() => remove(r)}>{t("bpmnPanel.deleteLabel")}</AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>
                 </AlertDialog>
@@ -333,19 +339,19 @@ function DocumentsPanel({ level, id }: Props) {
             </div>
           </li>
         ))}
-        {!q.isLoading && (q.data ?? []).length === 0 && <li className="px-3 py-4 text-sm text-muted-foreground">Sin documentos.</li>}
+        {!q.isLoading && (q.data ?? []).length === 0 && <li className="px-3 py-4 text-sm text-muted-foreground">{t("bpmnPanel.noDocuments")}</li>}
       </ul>
       {canEdit && (
         <div className="flex items-end gap-2 rounded-md border bg-muted/30 p-3">
           <div className="space-y-1.5">
-            <Label className="text-xs">Versión</Label>
+            <Label className="text-xs">{t("bpmnPanel.documentVersion")}</Label>
             <Input value={version} onChange={(e) => setVersion(e.target.value)} placeholder="1.0" className="w-28" />
           </div>
           <div className="flex-1 space-y-1.5">
-            <Label className="text-xs">Archivo</Label>
+            <Label className="text-xs">{t("bpmnPanel.documentFile")}</Label>
             <Input type="file" disabled={uploading} onChange={(e) => e.target.files?.[0] && onUpload(e.target.files[0])} />
           </div>
-          <Button disabled={uploading} variant="outline"><Upload className="mr-1 h-4 w-4" />{uploading ? "Subiendo…" : "Subir"}</Button>
+          <Button disabled={uploading} variant="outline"><Upload className="mr-1 h-4 w-4" />{uploading ? t("bpmnPanel.uploading") : t("bpmnPanel.upload")}</Button>
         </div>
       )}
     </div>
@@ -355,6 +361,7 @@ function DocumentsPanel({ level, id }: Props) {
 // ---------------- Entity links ----------------
 type Link = { id: string; entity_id: string; role: "proveedor" | "cliente" | "entrada" | "salida"; notes: string | null; entity?: { name: string } | null };
 function EntityLinksPanel({ level, id }: Props) {
+  const { t } = useTranslation();
   const { canEdit } = useAuth();
   const qc = useQueryClient();
   const key = ["entity-links", level, id];
@@ -401,30 +408,30 @@ function EntityLinksPanel({ level, id }: Props) {
               {r.notes && <p className="text-xs text-muted-foreground">{r.notes}</p>}
             </div>
             {canEdit && (
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button size="icon" variant="ghost" aria-label="Eliminar vínculo"><Trash2 className="h-4 w-4" /></Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>¿Eliminar vínculo?</AlertDialogTitle>
-                    <AlertDialogDescription>Esta acción no se puede deshacer. Se eliminará la relación con «{r.entity?.name ?? r.entity_id}».</AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                    <AlertDialogAction onClick={() => remove(r.id)}>Eliminar</AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button size="icon" variant="ghost" aria-label={t("bpmnPanel.deleteLabel")}><Trash2 className="h-4 w-4" /></Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>{t("bpmnPanel.deleteLinkTitle")}</AlertDialogTitle>
+                      <AlertDialogDescription>{t("bpmnPanel.deleteLinkDesc", { name: r.entity?.name ?? r.entity_id })}</AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>{t("bpmnPanel.cancel")}</AlertDialogCancel>
+                      <AlertDialogAction onClick={() => remove(r.id)}>{t("bpmnPanel.deleteLabel")}</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
             )}
           </li>
         ))}
-        {!q.isLoading && (q.data ?? []).length === 0 && <li className="px-3 py-4 text-sm text-muted-foreground">Sin vínculos.</li>}
+        {!q.isLoading && (q.data ?? []).length === 0 && <li className="px-3 py-4 text-sm text-muted-foreground">{t("bpmnPanel.noLinks")}</li>}
       </ul>
       {canEdit && (
         <form onSubmit={add} className="grid grid-cols-1 gap-2 rounded-md border bg-muted/30 p-3 md:grid-cols-5">
           <Select value={form.entity_id} onValueChange={(v) => setForm({ ...form, entity_id: v })}>
-            <SelectTrigger className="md:col-span-2"><SelectValue placeholder="Entidad" /></SelectTrigger>
+            <SelectTrigger className="md:col-span-2"><SelectValue placeholder={t("bpmnPanel.entity")} /></SelectTrigger>
             <SelectContent>
               {(entitiesQ.data ?? []).map((e) => <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>)}
             </SelectContent>
@@ -432,14 +439,14 @@ function EntityLinksPanel({ level, id }: Props) {
           <Select value={form.role} onValueChange={(v) => setForm({ ...form, role: v as Link["role"] })}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="proveedor">Proveedor</SelectItem>
-              <SelectItem value="cliente">Cliente</SelectItem>
-              <SelectItem value="entrada">Entrada</SelectItem>
-              <SelectItem value="salida">Salida</SelectItem>
+              <SelectItem value="proveedor">{t("bpmnPanel.roleProveedor")}</SelectItem>
+              <SelectItem value="cliente">{t("bpmnPanel.roleCliente")}</SelectItem>
+              <SelectItem value="entrada">{t("bpmnPanel.roleEntrada")}</SelectItem>
+              <SelectItem value="salida">{t("bpmnPanel.roleSalida")}</SelectItem>
             </SelectContent>
           </Select>
-          <Input placeholder="Notas" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
-          <Button type="submit"><Plus className="mr-1 h-4 w-4" /> Añadir</Button>
+          <Input placeholder={t("bpmnPanel.notes")} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
+          <Button type="submit"><Plus className="mr-1 h-4 w-4" /> {t("bpmnPanel.addLink")}</Button>
         </form>
       )}
     </div>

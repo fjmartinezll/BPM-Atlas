@@ -41,10 +41,10 @@ export const Route = createFileRoute("/email/unsubscribe")({
         }
 
         if (tokenRecord.used_at) {
-          return Response.json({ valid: false, reason: 'already_unsubscribed' })
+          return Response.json({ used: true, email: tokenRecord.email })
         }
 
-        return Response.json({ valid: true })
+        return Response.json({ valid: true, email: tokenRecord.email })
       },
 
       POST: async ({ request }) => {

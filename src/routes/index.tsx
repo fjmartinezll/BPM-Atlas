@@ -9,7 +9,7 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "BPM Atlas — Modelado jerárquico de procesos" },
-      { name: "description", content: "Visualiza y gobierna macroprocesos, procesos, subprocesos y tareas de tu organización." },
+      { name: "description", content: "Visualiza y gobierna mapas de procesos, procesos, subprocesos y tareas de tu organización." },
     ],
   }),
   component: Landing,
@@ -51,7 +51,7 @@ function Landing() {
 
         <div className="mt-20 grid gap-6 md:grid-cols-3">
           {[
-            { icon: GitBranch, title: t("dashboard.subtitle"), text: "Macroprocesos → Procesos → Subprocesos → Tareas." },
+            { icon: GitBranch, title: t("dashboard.subtitle"), text: "Mapas de Procesos → Procesos → Subprocesos → Tareas." },
             { icon: Shield, title: t("nav.admin"), text: "Roles: Administrador, Diseñador de Procesos, Usuario, Auditor." },
             { icon: BookOpen, title: t("nav.encyclopedia"), text: t("encyclopedia.subtitle") },
           ].map((c) => (

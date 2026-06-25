@@ -11,7 +11,7 @@ const INITIAL_TABLES: Record<string, Box> = {
   profiles:             { x:  40, y: 120, w: BOX_W, h: BOX_H, label: "Perfiles de usuario",            group: "identity" },
   user_roles:           { x:  40, y: 200, w: BOX_W, h: BOX_H, label: "Roles de usuario",          group: "identity" },
 
-  macroprocesses:       { x: 320, y:  40, w: BOX_W, h: BOX_H, label: "Macroprocesos",      group: "hierarchy" },
+  macroprocesses:       { x: 320, y:  40, w: BOX_W, h: BOX_H, label: "Mapas de Procesos",      group: "hierarchy" },
   processes:            { x: 320, y: 130, w: BOX_W, h: BOX_H, label: "Procesos",           group: "hierarchy" },
   executable_elements:  { x: 320, y: 220, w: BOX_W, h: BOX_H, label: "Elementos ejecutables", group: "hierarchy" },
   subprocesses:         { x: 320, y: 320, w: BOX_W, h: BOX_H, label: "Subprocesos",        group: "hierarchy" },

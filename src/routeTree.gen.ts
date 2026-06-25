@@ -27,7 +27,6 @@ import { Route as AuthenticatedEngineRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedEncyclopediaRouteImport } from './routes/_authenticated/encyclopedia'
 import { Route as AuthenticatedDatabaseRouteImport } from './routes/_authenticated/database'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
-import { Route as AuthenticatedChangelogRouteImport } from './routes/_authenticated/changelog'
 import { Route as AuthenticatedAiSuggestRouteImport } from './routes/_authenticated/ai-suggest'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
@@ -37,11 +36,8 @@ import { Route as ApiPublicNotifyNewSignupRouteImport } from './routes/api/publi
 import { Route as ApiPublicConfirmSignupRouteImport } from './routes/api/public/confirm-signup'
 import { Route as ApiPublicAcceptInviteRouteImport } from './routes/api/public/accept-invite'
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin.users'
-import { Route as AuthenticatedAdminTenantRouteImport } from './routes/_authenticated/admin.tenant'
 import { Route as AuthenticatedAdminNodeTaxonomyRouteImport } from './routes/_authenticated/admin.node-taxonomy'
-import { Route as AuthenticatedAdminGovernanceRouteImport } from './routes/_authenticated/admin.governance'
 import { Route as AuthenticatedAdminEntitiesErRouteImport } from './routes/_authenticated/admin.entities-er'
-import { Route as AuthenticatedAdminControlCenterRouteImport } from './routes/_authenticated/admin.control-center'
 import { Route as LovableEmailTransactionalSendRouteImport } from './routes/lovable/email/transactional/send'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
@@ -137,11 +133,6 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedChangelogRoute = AuthenticatedChangelogRouteImport.update({
-  id: '/changelog',
-  path: '/changelog',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
 const AuthenticatedAiSuggestRoute = AuthenticatedAiSuggestRouteImport.update({
   id: '/ai-suggest',
   path: '/ai-suggest',
@@ -189,34 +180,16 @@ const AuthenticatedAdminUsersRoute = AuthenticatedAdminUsersRouteImport.update({
   path: '/admin/users',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedAdminTenantRoute =
-  AuthenticatedAdminTenantRouteImport.update({
-    id: '/admin/tenant',
-    path: '/admin/tenant',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
 const AuthenticatedAdminNodeTaxonomyRoute =
   AuthenticatedAdminNodeTaxonomyRouteImport.update({
     id: '/admin/node-taxonomy',
     path: '/admin/node-taxonomy',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
-const AuthenticatedAdminGovernanceRoute =
-  AuthenticatedAdminGovernanceRouteImport.update({
-    id: '/admin/governance',
-    path: '/admin/governance',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
 const AuthenticatedAdminEntitiesErRoute =
   AuthenticatedAdminEntitiesErRouteImport.update({
     id: '/admin/entities-er',
     path: '/admin/entities-er',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
-const AuthenticatedAdminControlCenterRoute =
-  AuthenticatedAdminControlCenterRouteImport.update({
-    id: '/admin/control-center',
-    path: '/admin/control-center',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
 const LovableEmailTransactionalSendRoute =
@@ -251,7 +224,6 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/unsubscribe': typeof UnsubscribeRoute
   '/ai-suggest': typeof AuthenticatedAiSuggestRoute
-  '/changelog': typeof AuthenticatedChangelogRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/database': typeof AuthenticatedDatabaseRoute
   '/encyclopedia': typeof AuthenticatedEncyclopediaRoute
@@ -264,11 +236,8 @@ export interface FileRoutesByFullPath {
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/invite/accept': typeof InviteAcceptRoute
   '/onboarding/confirm': typeof OnboardingConfirmRoute
-  '/admin/control-center': typeof AuthenticatedAdminControlCenterRoute
   '/admin/entities-er': typeof AuthenticatedAdminEntitiesErRoute
-  '/admin/governance': typeof AuthenticatedAdminGovernanceRoute
   '/admin/node-taxonomy': typeof AuthenticatedAdminNodeTaxonomyRoute
-  '/admin/tenant': typeof AuthenticatedAdminTenantRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/api/public/accept-invite': typeof ApiPublicAcceptInviteRoute
   '/api/public/confirm-signup': typeof ApiPublicConfirmSignupRoute
@@ -289,7 +258,6 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/unsubscribe': typeof UnsubscribeRoute
   '/ai-suggest': typeof AuthenticatedAiSuggestRoute
-  '/changelog': typeof AuthenticatedChangelogRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/database': typeof AuthenticatedDatabaseRoute
   '/encyclopedia': typeof AuthenticatedEncyclopediaRoute
@@ -302,11 +270,8 @@ export interface FileRoutesByTo {
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/invite/accept': typeof InviteAcceptRoute
   '/onboarding/confirm': typeof OnboardingConfirmRoute
-  '/admin/control-center': typeof AuthenticatedAdminControlCenterRoute
   '/admin/entities-er': typeof AuthenticatedAdminEntitiesErRoute
-  '/admin/governance': typeof AuthenticatedAdminGovernanceRoute
   '/admin/node-taxonomy': typeof AuthenticatedAdminNodeTaxonomyRoute
-  '/admin/tenant': typeof AuthenticatedAdminTenantRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/api/public/accept-invite': typeof ApiPublicAcceptInviteRoute
   '/api/public/confirm-signup': typeof ApiPublicConfirmSignupRoute
@@ -329,7 +294,6 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/unsubscribe': typeof UnsubscribeRoute
   '/_authenticated/ai-suggest': typeof AuthenticatedAiSuggestRoute
-  '/_authenticated/changelog': typeof AuthenticatedChangelogRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/database': typeof AuthenticatedDatabaseRoute
   '/_authenticated/encyclopedia': typeof AuthenticatedEncyclopediaRoute
@@ -342,11 +306,8 @@ export interface FileRoutesById {
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/invite/accept': typeof InviteAcceptRoute
   '/onboarding/confirm': typeof OnboardingConfirmRoute
-  '/_authenticated/admin/control-center': typeof AuthenticatedAdminControlCenterRoute
   '/_authenticated/admin/entities-er': typeof AuthenticatedAdminEntitiesErRoute
-  '/_authenticated/admin/governance': typeof AuthenticatedAdminGovernanceRoute
   '/_authenticated/admin/node-taxonomy': typeof AuthenticatedAdminNodeTaxonomyRoute
-  '/_authenticated/admin/tenant': typeof AuthenticatedAdminTenantRoute
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
   '/api/public/accept-invite': typeof ApiPublicAcceptInviteRoute
   '/api/public/confirm-signup': typeof ApiPublicConfirmSignupRoute
@@ -369,7 +330,6 @@ export interface FileRouteTypes {
     | '/signup'
     | '/unsubscribe'
     | '/ai-suggest'
-    | '/changelog'
     | '/dashboard'
     | '/database'
     | '/encyclopedia'
@@ -382,11 +342,8 @@ export interface FileRouteTypes {
     | '/email/unsubscribe'
     | '/invite/accept'
     | '/onboarding/confirm'
-    | '/admin/control-center'
     | '/admin/entities-er'
-    | '/admin/governance'
     | '/admin/node-taxonomy'
-    | '/admin/tenant'
     | '/admin/users'
     | '/api/public/accept-invite'
     | '/api/public/confirm-signup'
@@ -407,7 +364,6 @@ export interface FileRouteTypes {
     | '/signup'
     | '/unsubscribe'
     | '/ai-suggest'
-    | '/changelog'
     | '/dashboard'
     | '/database'
     | '/encyclopedia'
@@ -420,11 +376,8 @@ export interface FileRouteTypes {
     | '/email/unsubscribe'
     | '/invite/accept'
     | '/onboarding/confirm'
-    | '/admin/control-center'
     | '/admin/entities-er'
-    | '/admin/governance'
     | '/admin/node-taxonomy'
-    | '/admin/tenant'
     | '/admin/users'
     | '/api/public/accept-invite'
     | '/api/public/confirm-signup'
@@ -446,7 +399,6 @@ export interface FileRouteTypes {
     | '/signup'
     | '/unsubscribe'
     | '/_authenticated/ai-suggest'
-    | '/_authenticated/changelog'
     | '/_authenticated/dashboard'
     | '/_authenticated/database'
     | '/_authenticated/encyclopedia'
@@ -459,11 +411,8 @@ export interface FileRouteTypes {
     | '/email/unsubscribe'
     | '/invite/accept'
     | '/onboarding/confirm'
-    | '/_authenticated/admin/control-center'
     | '/_authenticated/admin/entities-er'
-    | '/_authenticated/admin/governance'
     | '/_authenticated/admin/node-taxonomy'
-    | '/_authenticated/admin/tenant'
     | '/_authenticated/admin/users'
     | '/api/public/accept-invite'
     | '/api/public/confirm-signup'
@@ -627,13 +576,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/changelog': {
-      id: '/_authenticated/changelog'
-      path: '/changelog'
-      fullPath: '/changelog'
-      preLoaderRoute: typeof AuthenticatedChangelogRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
     '/_authenticated/ai-suggest': {
       id: '/_authenticated/ai-suggest'
       path: '/ai-suggest'
@@ -697,13 +639,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminUsersRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/admin/tenant': {
-      id: '/_authenticated/admin/tenant'
-      path: '/admin/tenant'
-      fullPath: '/admin/tenant'
-      preLoaderRoute: typeof AuthenticatedAdminTenantRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
     '/_authenticated/admin/node-taxonomy': {
       id: '/_authenticated/admin/node-taxonomy'
       path: '/admin/node-taxonomy'
@@ -711,25 +646,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminNodeTaxonomyRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/admin/governance': {
-      id: '/_authenticated/admin/governance'
-      path: '/admin/governance'
-      fullPath: '/admin/governance'
-      preLoaderRoute: typeof AuthenticatedAdminGovernanceRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
     '/_authenticated/admin/entities-er': {
       id: '/_authenticated/admin/entities-er'
       path: '/admin/entities-er'
       fullPath: '/admin/entities-er'
       preLoaderRoute: typeof AuthenticatedAdminEntitiesErRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/admin/control-center': {
-      id: '/_authenticated/admin/control-center'
-      path: '/admin/control-center'
-      fullPath: '/admin/control-center'
-      preLoaderRoute: typeof AuthenticatedAdminControlCenterRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/lovable/email/transactional/send': {
@@ -765,7 +686,6 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteChildren {
   AuthenticatedAiSuggestRoute: typeof AuthenticatedAiSuggestRoute
-  AuthenticatedChangelogRoute: typeof AuthenticatedChangelogRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedDatabaseRoute: typeof AuthenticatedDatabaseRoute
   AuthenticatedEncyclopediaRoute: typeof AuthenticatedEncyclopediaRoute
@@ -775,11 +695,8 @@ interface AuthenticatedRouteChildren {
   AuthenticatedNodeErRoute: typeof AuthenticatedNodeErRoute
   AuthenticatedProcessMapRoute: typeof AuthenticatedProcessMapRoute
   AuthenticatedWebhooksRoute: typeof AuthenticatedWebhooksRoute
-  AuthenticatedAdminControlCenterRoute: typeof AuthenticatedAdminControlCenterRoute
   AuthenticatedAdminEntitiesErRoute: typeof AuthenticatedAdminEntitiesErRoute
-  AuthenticatedAdminGovernanceRoute: typeof AuthenticatedAdminGovernanceRoute
   AuthenticatedAdminNodeTaxonomyRoute: typeof AuthenticatedAdminNodeTaxonomyRoute
-  AuthenticatedAdminTenantRoute: typeof AuthenticatedAdminTenantRoute
   AuthenticatedAdminUsersRoute: typeof AuthenticatedAdminUsersRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
   AuthenticatedHierarchyLevelIdRoute: typeof AuthenticatedHierarchyLevelIdRoute
@@ -787,7 +704,6 @@ interface AuthenticatedRouteChildren {
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAiSuggestRoute: AuthenticatedAiSuggestRoute,
-  AuthenticatedChangelogRoute: AuthenticatedChangelogRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedDatabaseRoute: AuthenticatedDatabaseRoute,
   AuthenticatedEncyclopediaRoute: AuthenticatedEncyclopediaRoute,
@@ -797,11 +713,8 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedNodeErRoute: AuthenticatedNodeErRoute,
   AuthenticatedProcessMapRoute: AuthenticatedProcessMapRoute,
   AuthenticatedWebhooksRoute: AuthenticatedWebhooksRoute,
-  AuthenticatedAdminControlCenterRoute: AuthenticatedAdminControlCenterRoute,
   AuthenticatedAdminEntitiesErRoute: AuthenticatedAdminEntitiesErRoute,
-  AuthenticatedAdminGovernanceRoute: AuthenticatedAdminGovernanceRoute,
   AuthenticatedAdminNodeTaxonomyRoute: AuthenticatedAdminNodeTaxonomyRoute,
-  AuthenticatedAdminTenantRoute: AuthenticatedAdminTenantRoute,
   AuthenticatedAdminUsersRoute: AuthenticatedAdminUsersRoute,
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
   AuthenticatedHierarchyLevelIdRoute: AuthenticatedHierarchyLevelIdRoute,

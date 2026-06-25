@@ -27,7 +27,7 @@ const TABLE_LABEL: Record<string, string> = {
   tenant_join_requests: "Solicitudes de unión",
   entities: "Entidades",
   entity_process_links: "Vínculos entidad-proceso",
-  macroprocesses: "Macroprocesos",
+  macroprocesses: "Mapas de Procesos",
   processes: "Procesos",
   subprocesses: "Subprocesos",
   executable_elements: "Elementos ejecutables",
@@ -124,7 +124,7 @@ export function BackupPanel() {
           <AlertTitle>Qué se incluye y qué NO</AlertTitle>
           <AlertDescription className="text-xs space-y-1">
             <div>
-              <strong>Incluye:</strong> clientes, entidades, macroprocesos, procesos, subprocesos,
+              <strong>Incluye:</strong> clientes, entidades, mapas de procesos, procesos, subprocesos,
               tareas, diagramas, posiciones de entidad, vínculos entidad↔proceso, taxonomía de
               nodos y catálogo de campos.
             </div>
